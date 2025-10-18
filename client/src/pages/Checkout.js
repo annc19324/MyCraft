@@ -11,10 +11,12 @@ function Checkout() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(null);
+    const [selectedItems, setSelectedItems] = useState([]);
 
     useEffect(() => {
         const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
         setCartItems(savedCart);
+        setSelectedItems(savedCart.map((item) => item.productId))
     }, []);
 
     const handleInputChange = async (e) => {
@@ -37,6 +39,12 @@ function Checkout() {
                 totalPrice,
                 status: 'pending',
             });
+
+            //xoa cac sp thanh toan khoi cart 
+            const updatedCart = cartItems.filter((item) => !selectedItems.includes(item.productId));
+            setCartItems(updatedCart);
+            localStorage.setItem('cart', JSON.stringify(updatedCart));
+
             setSuccess(true);
             setCartItems([]);
             localStorage.setItem('cart', '[]');

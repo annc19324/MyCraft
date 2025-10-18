@@ -28,12 +28,18 @@ function Cart() {
         <div className='cart'>
             <h2>Giỏ hàng</h2>
             <div className='cart-items'>
-                {cartItems.map((item, index) => (
-                    <div key={item.productId || index} className="cart-item">
-                        <img src={item.imageUrl} alt={item.name} />
+                {cartItems.map((item) => (
+                    <div key={item._id} className='cart-item'>
+                        <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            style={{ width: '150px', height: '150px', borderRadius: '10px', marginBottom: '10px' }}
+                        />
+
                         <div>
                             <h3>{item.name}</h3>
-                            <p>Giá: {item.price} VND</p>
+                            <p>Giá: {item.price} VNĐ</p>
+                            <button onClick={() => removeFromCart(item.productId)}>Xóa</button>
                         </div>
                     </div>
                 ))}

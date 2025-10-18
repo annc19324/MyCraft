@@ -33,9 +33,16 @@ function ProductDetail() {
     if (!product)
       return;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    cart.push(product);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    alert('Đã thêm vào giỏ hàng');
+    //ktra xem sp co trong gio hang chua
+    if (!cart.some((item) => item.productId === product.productId)) {
+      cart.push(product);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      alert('Đã thêm vào giỏ hàng');
+    } else {
+      alert('sp đã có trong giỏ hàng');
+    }
+
+
 
   };
 
