@@ -34,16 +34,13 @@ function ProductDetail() {
       return;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     //ktra xem sp co trong gio hang chua
-    if (!cart.some((item) => item.productId === product.productId)) {
+    if (!cart.some((item) => item._id === product._id)) {
       cart.push(product);
       localStorage.setItem('cart', JSON.stringify(cart));
       alert('Đã thêm vào giỏ hàng');
     } else {
       alert('sp đã có trong giỏ hàng');
     }
-
-
-
   };
 
 

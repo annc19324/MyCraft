@@ -14,9 +14,16 @@ mongoose.connect(process.env.MONGO_URI, {
 const seedProducts = [
     {
         // productId: '1', 
-        name: 'cong tay thu cong',
+        name: 'cong tay thu cong 1',
         price: 100,
-        description: 'day la vong tay thu cong',
+        description: 'day la vong tay thu cong 1',
+        imageUrl: 'https://place.dog/100/100',
+        stock: 200
+    }, {
+        // productId: '1', 
+        name: 'cong tay thu cong 2',
+        price: 100,
+        description: 'day la vong tay thu cong 2',
         imageUrl: 'https://place.dog/100/100',
         stock: 200
     },
