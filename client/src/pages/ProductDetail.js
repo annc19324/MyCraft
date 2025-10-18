@@ -42,6 +42,11 @@ function ProductDetail() {
 
   return (
     <div className="product-detail">
+      <img
+        src={product.imageUrl}
+        alt={product.name}
+        style={{ width: '150px', borderRadius: '10px', marginBottom: '10px' }}
+      />
       <h2>{product.name}</h2>
       <p>{product.description}</p>
       <p>Giá: {product.price} VNĐ</p>

@@ -3,6 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const productRoutes = require('./routes/productRoutes');
+const orderRoutes = require('./routes/orderRoutes')
 
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.get('/api', (req, res) => {
 })
 
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
 const PORT = process.env.PORT || ''
 if (PORT === '') {

@@ -38,7 +38,8 @@ nav a {
   text-decoration: none;
 }
 
-.product-card {
+.product-card,
+.product-detail {
   border: 1px solid #ccc;
   padding: 1rem;
   margin: 1rem;
@@ -69,6 +70,8 @@ nav a {
   padding: 1rem;
   border-radius: 5px;
   display: flex;
+  flex-direction: column;
+  border-radius: 5px;
   align-items: center;
   gap: 1rem;
 }
@@ -90,4 +93,40 @@ nav a {
   color: white;
   text-decoration: none;
   border-radius: 5px;
+}
+
+
+/* checkout */
+.checkout {
+  padding: 1rem;
+  text-align: center;
+}
+
+.checkout form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.checkout form div {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.checkout form input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.checkout form button {
+  padding: 0.5rem 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
