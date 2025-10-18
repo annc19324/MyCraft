@@ -188,3 +188,52 @@ header nav button {
   border-radius: 5px;
   cursor: pointer;
 }
+
+/* admin */
+/* admin-dashboard */
+.admin-dashboard {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.admin-dashboard h2,
+.admin-dashboard h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Form trong admin-dashboard */
+.admin-dashboard form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 0 auto 2rem;
+}
+
+.admin-dashboard form div {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.admin-dashboard form input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.admin-dashboard form button {
+  padding: 0.5rem 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.admin-dashboard form button:hover {
+  background-color: #218838;
+}

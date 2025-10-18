@@ -15,6 +15,9 @@ function Header() {
                 <Link to="/">Trang chủ</Link>
                 <Link to="/products" style={{ marginLeft: '1rem' }}>Sản phẩm</Link>
                 <Link to="/cart" style={{ marginLeft: '1rem' }}>Giỏ hàng</Link>
+                {user && user.role === 'admin' && (
+                    <Link to="/admin" style={{ marginLeft: '1rem' }}>Quản lý</Link>
+                )}
                 {user ? (
                     <button onClick={handleLogout} style={{ marginLeft: '1rem' }}>
                         Đăng xuất
