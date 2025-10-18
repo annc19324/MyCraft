@@ -7,12 +7,17 @@ function ProductCard({ product }) {
             <Link
                 style={{ textDecoration: 'none', color: 'red' }}
                 to={`/products/${product._id}`}>
+                <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    style={{ width: '150px', borderRadius: '10px', marginBottom: '10px' }}
+                />
                 <h3 >
                     {product.name}
                 </h3>
             </Link>
             <p>{product.description}</p>
-            <p>Giá: {product.price} VNĐ</p>
+            <p>Giá: {product.price.toLocaleString()} VNĐ</p>
         </div >
     );
 }

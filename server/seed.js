@@ -12,9 +12,14 @@ mongoose.connect(process.env.MONGO_URI, {
     .catch((err) => console.log('loi ket noi mongoose: ', err))
 
 const seedProducts = [
-    { productId: '1', name: 'cong tay thu cong', price: 100, description: 'day la vong tay thu cong', ImageUrl: 'https://place.dog/100/100', stock: 200 },
-    { productId: '1', name: 'cong tay thu cong', price: 100, description: 'day la vong tay thu cong', ImageUrl: 'https://place.dog/100/100', stock: 200 },
-    { productId: '1', name: 'cong tay thu cong', price: 100, description: 'day la vong tay thu cong', ImageUrl: 'https://place.dog/100/100', stock: 200 },
+    {
+        // productId: '1', 
+        name: 'cong tay thu cong',
+        price: 100,
+        description: 'day la vong tay thu cong',
+        imageUrl: 'https://place.dog/100/100',
+        stock: 200
+    },
 ];
 
 const seedDB = async () => {
