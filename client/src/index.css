@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-decoration: none;
 }
 
 code {
@@ -29,10 +30,12 @@ nav a {
   color: white;
   margin: 0 1rem;
   text-decoration: none;
+  padding: 1rem;
 }
 
 .product-list {
   padding: 1rem;
+  text-decoration: none;
 }
 
 .product-card {
