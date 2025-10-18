@@ -15,7 +15,18 @@ function Checkout() {
     useEffect(() => {
         const selected = JSON.parse(localStorage.getItem('selectedItems') || '[]');
         setCartItems(selected);
+
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (user) {
+            setCustomerInfo({
+                name: user.name || '',
+                address: user.address || '',
+                phone: user.phone || '',
+            });
+        }
     }, []);
+
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -33,9 +44,10 @@ function Checkout() {
         setLoading(true);
         try {
             const totalPrice = cartItems.reduce((total, item) => total + item.price, 0);
-
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
             // Gửi đơn hàng lên server
             await axios.post('http://localhost:5000/api/orders', {
+                userId: user ? user._id : null,
                 customerInfo,
                 items: cartItems,
                 totalPrice,
@@ -43,7 +55,8 @@ function Checkout() {
             });
 
             // Cập nhật lại giỏ hàng (chỉ xóa các sản phẩm đã đặt)
-            const fullCart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const cartKey = user ? `cart_${user._id}` : 'cart';
+            const fullCart = JSON.parse(localStorage.getItem('cartKey') || '[]');
             const remainingCart = fullCart.filter(
                 item => !cartItems.some(selected => selected._id === item._id)
             );
