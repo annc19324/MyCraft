@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const productRoutes = require('./routes/productRoutes');
+
 
 dotenv.config();
 const app = express();
@@ -17,9 +19,11 @@ mongoose.connect(process.env.MONGO_URI, {
     .catch((err) =>
         console.log('lỗi kết nối mongo: ', err));
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
     res.json({ message: 'đây là API MyCraft' })
 })
+
+app.use('/api/products', productRoutes);
 
 const PORT = process.env.PORT || ''
 if (PORT === '') {
