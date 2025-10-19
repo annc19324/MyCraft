@@ -1,10 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const User = require('../models/User');
-const { v4: uuidv4 } = require('uuid');
+const checkAdmin = require('../middleware/checkAdmin');
 
-//lay ds sp
 router.get('/', async (req, res) => {
     try {
         const products = await Product.find();
@@ -14,7 +12,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-//lay sp theo id
 router.get('/:id', async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
@@ -27,33 +24,28 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-
-// Middleware kiểm tra vai trò admin
-const isAdmin = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.headers['user-id']);
-        if (!user || user.role !== 'admin') {
-            return res.status(403).json({ message: 'Yêu cầu quyền admin' });
-        }
-        next();
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
-
-
-// Tạo sản phẩm (admin)
-router.post('/', isAdmin, async (req, res) => {
+router.post('/', checkAdmin, async (req, res) => {
     try {
         const { name, price, description, imageUrl, stock } = req.body;
-        const product = new Product({
-            productId: uuidv4(),
-            name,
-            price,
-            description,
-            imageUrl,
-            stock,
-        });
+
+        // Validate dữ liệu đầu vào
+        if (!name || !price || !stock) {
+            return res.status(400).json({ message: 'Tên, giá và số lượng tồn kho là bắt buộc' });
+        }
+        if (name.length > 100) {
+            return res.status(400).json({ message: 'Tên sản phẩm không được vượt quá 100 ký tự' });
+        }
+        if (price < 0) {
+            return res.status(400).json({ message: 'Giá sản phẩm không được nhỏ hơn 0' });
+        }
+        if (stock < 0) {
+            return res.status(400).json({ message: 'Số lượng tồn kho không được nhỏ hơn 0' });
+        }
+        if (imageUrl && !/^https?:\/\/.+$/.test(imageUrl)) {
+            return res.status(400).json({ message: 'URL hình ảnh không hợp lệ' });
+        }
+
+        const product = new Product({ name, price, description, imageUrl, stock });
         await product.save();
         res.status(201).json(product);
     } catch (err) {
@@ -61,38 +53,47 @@ router.post('/', isAdmin, async (req, res) => {
     }
 });
 
-// Sửa sản phẩm (admin)
-router.put('/:id', isAdmin, async (req, res) => {
+router.put('/:id', checkAdmin, async (req, res) => {
     try {
         const { name, price, description, imageUrl, stock } = req.body;
-        const product = await Product.findByIdAndUpdate(
-            req.params.id,
-            { name, price, description, imageUrl, stock },
-            { new: true }
-        );
-        if (!product) {
-            return res.status(404).json({ message: 'Sản phẩm không tồn tại' });
+
+        // Validate dữ liệu đầu vào
+        if (name && name.length > 100) {
+            return res.status(400).json({ message: 'Tên sản phẩm không được vượt quá 100 ký tự' });
         }
+        if (price && price < 0) {
+            return res.status(400).json({ message: 'Giá sản phẩm không được nhỏ hơn 0' });
+        }
+        if (stock && stock < 0) {
+            return res.status(400).json({ message: 'Số lượng tồn kho không được nhỏ hơn 0' });
+        }
+        if (imageUrl && !/^https?:\/\/.+$/.test(imageUrl)) {
+            return res.status(400).json({ message: 'URL hình ảnh không hợp lệ' });
+        }
+
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+        }
+        Object.assign(product, req.body);
+        await product.save();
         res.json(product);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
 });
 
-// Xóa sản phẩm (admin)
-router.delete('/:id', isAdmin, async (req, res) => {
+router.delete('/:id', checkAdmin, async (req, res) => {
     try {
-        const product = await Product.findByIdAndDelete(req.params.id);
+        const product = await Product.findById(req.params.id);
         if (!product) {
-            return res.status(404).json({ message: 'Sản phẩm không tồn tại' });
+            return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
         }
+        await product.remove();
         res.json({ message: 'Xóa sản phẩm thành công' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-
-
 module.exports = router;
-

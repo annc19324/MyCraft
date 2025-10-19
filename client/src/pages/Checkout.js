@@ -1,149 +1,145 @@
-import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import axios from 'axios';
+import './Checkout.css';
 
 function Checkout() {
-    const [cartItems, setCartItems] = useState([]);
-    const [customerInfo, setCustomerInfo] = useState({
-        name: '',
-        address: '',
-        phone: '',
-    });
-    const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
+    const [orderItems, setOrderItems] = useState([]);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const selectedItems = location.state?.selectedItems || [];
 
     useEffect(() => {
-        const selected = JSON.parse(localStorage.getItem('selectedItems') || '[]');
-        setCartItems(selected);
-
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
-        if (user) {
-            setCustomerInfo({
-                name: user.name || '',
-                address: user.address || '',
-                phone: user.phone || '',
-            });
-        }
-    }, []);
-
-
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setCustomerInfo((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
-            setError('Vui lòng điền đầy đủ thông tin');
+        if (!user || !user.userId) {
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập để thanh toán' } });
             return;
         }
 
-        setLoading(true);
+        let isMounted = true;
+
+        const fetchOrderItems = async () => {
+            if (selectedItems.length === 0) {
+                setError('Không có sản phẩm nào để thanh toán');
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const response = await axios.post(
+                    'http://localhost:5000/api/cart/selected',
+                    { selectedItems },
+                    { headers: { 'user-id': user.userId } }
+                );
+                console.log('Order Items Response:', response.data);
+                if (isMounted) {
+                    setOrderItems(response.data.items || []);
+                    setError(null);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setError(err.response?.data?.message || 'Lỗi khi lấy thông tin thanh toán');
+                    console.error('Fetch order items error:', err.response?.data || err.message);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchOrderItems();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [navigate, user?.userId, selectedItems]);
+
+    const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const handlePlaceOrder = async () => {
+        if (orderItems.length === 0) {
+            setError('Không có sản phẩm nào để thanh toán');
+            return;
+        }
+
         try {
-            const totalPrice = cartItems.reduce((total, item) => total + item.price, 0);
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            // Gửi đơn hàng lên server
-            await axios.post('http://localhost:5000/api/orders', {
-                userId: user ? user._id : null,
-                customerInfo,
-                items: cartItems,
-                totalPrice,
-                status: 'pending',
-            });
-
-            // Cập nhật lại giỏ hàng (chỉ xóa các sản phẩm đã đặt)
-            const cartKey = user ? `cart_${user._id}` : 'cart';
-            const fullCart = JSON.parse(localStorage.getItem('cartKey') || '[]');
-            const remainingCart = fullCart.filter(
-                item => !cartItems.some(selected => selected._id === item._id)
+            await axios.post(
+                'http://localhost:5000/api/orders',
+                { items: orderItems },
+                { headers: { 'user-id': user.userId } }
             );
-
-            localStorage.setItem('cart', JSON.stringify(remainingCart));
-
-            // Xóa danh sách sản phẩm đã chọn
-            localStorage.removeItem('selectedItems');
-
-            // Reset giao diện
-            setSuccess(true);
-            setCartItems([]);
-            setCustomerInfo({ name: '', address: '', phone: '' });
+            // Xóa các sản phẩm đã thanh toán khỏi giỏ hàng
+            await axios.post(
+                'http://localhost:5000/api/cart/remove-selected',
+                { selectedItems },
+                { headers: { 'user-id': user.userId } }
+            );
+            alert('Đặt hàng thành công!');
+            navigate('/products');
         } catch (err) {
-            console.error('Lỗi khi đặt hàng:', err);
-            setError('Lỗi khi đặt hàng');
-        } finally {
-            setLoading(false);
+            setError(err.response?.data?.message || 'Lỗi khi đặt hàng');
+            console.error('Place order error:', err.response?.data || err.message);
         }
     };
 
-    if (success) {
-        return <div className="checkout">Đặt hàng thành công!</div>;
-    }
-
-    if (cartItems.length === 0) {
-        return <div className="checkout">Giỏ hàng trống</div>;
-    }
-
     return (
-        <div className="checkout">
+        <div className="checkout-container">
+            <nav className="navbar">
+                <Link to="/products">Sản phẩm</Link>
+                <Link to="/cart">Giỏ hàng</Link>
+                <button onClick={() => {
+                    if (window.confirm('Bạn có chắc muốn đăng xuất?')) {
+                        localStorage.removeItem('user');
+                        navigate('/login');
+                    }
+                }}>Đăng xuất</button>
+            </nav>
+            <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
             <h2>Thanh toán</h2>
-            <div className="cart-items">
-                {cartItems.map((item) => (
-                    <div key={item._id} className="cart-item">
-                        <img src={item.imageUrl} alt={item.name} />
-                        <div>
-                            <h3>{item.name}</h3>
-                            <p>Giá: {item.price} VND</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <h3>
-                Tổng cộng: {cartItems.reduce((total, item) => total + item.price, 0)} VND
-            </h3>
-
-            <form onSubmit={handleSubmit}>
+            {error && <p className="error">{error}</p>}
+            {loading && <p>Đang tải...</p>}
+            {!loading && orderItems.length === 0 ? (
+                <p>Không có sản phẩm nào để thanh toán</p>
+            ) : (
                 <div>
-                    <label>Họ tên: </label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={customerInfo.name}
-                        onChange={handleInputChange}
-                        required
-                    />
+                    <table className="checkout-table">
+                        <thead>
+                            <tr>
+                                <th>Hình ảnh</th>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Giá</th>
+                                <th>Tổng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orderItems.map((item) => (
+                                <tr key={item.productId}>
+                                    <td>
+                                        <img
+                                            src={item.imageUrl || 'https://place.dog/100/100'}
+                                            alt={item.name}
+                                            className="checkout-image"
+                                        />
+                                    </td>
+                                    <td>{item.name}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>{item.price.toLocaleString()} VNĐ</td>
+                                    <td>{(item.price * item.quantity).toLocaleString()} VNĐ</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <p>Tổng tiền: {totalPrice.toLocaleString()} VNĐ</p>
+                    <button onClick={handlePlaceOrder} className="place-order-button">
+                        Đặt hàng
+                    </button>
                 </div>
-
-                <div>
-                    <label>Địa chỉ: </label>
-                    <input
-                        type="text"
-                        name="address"
-                        value={customerInfo.address}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label>Số điện thoại: </label>
-                    <input
-                        type="text"
-                        name="phone"
-                        value={customerInfo.phone}
-                        onChange={handleInputChange}
-                        required
-                    />
-                </div>
-
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Đang xử lý...' : 'Đặt hàng'}
-                </button>
-            </form>
+            )}
         </div>
     );
 }

@@ -1,123 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './Login.css';
 
 function Login() {
-    const [isLogin, setIsLogin] = useState(true);
-    const [formData, setFormData] = useState({
-        username: '',
-        password: '',
-        name: '',
-        address: '',
-        phone: '',
-    });
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
+    useEffect(() => {
+        if (user && user.userId) {
+            console.log('User already logged in:', user);
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/products');
+            }
+        }
+    }, [navigate, user]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(null);
+        if (loading) return;
         setLoading(true);
+        setError(null);
+
         try {
-            if (isLogin) {
-                const response = await axios.post('http://localhost:5000/api/users/login', {
-                    username: formData.username,
-                    password: formData.password,
-                });
-                localStorage.setItem('user', JSON.stringify(response.data));
-                navigate('/');
+            const response = await axios.post('http://localhost:5000/api/auth/login', {
+                username,
+                password,
+            });
+            const userData = {
+                userId: response.data.userId,
+                username: response.data.username,
+                role: response.data.role || 'user',
+            };
+            console.log('Saving user to localStorage:', userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+            if (response.data.role === 'admin') {
+                navigate('/admin');
             } else {
-                if (!formData.name || !formData.address || !formData.phone) {
-                    setError('Vui lòng điền đầy đủ thông tin');
-                    setLoading(false);
-                    return;
-                }
-                await axios.post('http://localhost:5000/api/users/register', formData);
-                setIsLogin(true);
-                setFormData({ username: '', password: '', name: '', address: '', phone: '' });
-                alert('Đăng ký thành công! Vui lòng đăng nhập.');
+                navigate('/products');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi khi xử lý');
+            setError(err.response?.data?.message || 'Lỗi khi đăng nhập');
+            console.error('Login error:', err.response?.data || err.message);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="login">
-            <h2>{isLogin ? 'Đăng nhập' : 'Đăng ký'}</h2>
+        <div className="login-container">
+            <h2>Đăng nhập</h2>
+            {error && <p className="error">{error}</p>}
+            {loading && <p>Đang xử lý...</p>}
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Tên người dùng:</label>
+                <div className="form-group">
+                    <label>Tên đăng nhập:</label>
                     <input
                         type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleInputChange}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         required
                     />
                 </div>
-                <div>
+                <div className="form-group">
                     <label>Mật khẩu:</label>
                     <input
                         type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                     />
                 </div>
-                {!isLogin && (
-                    <>
-                        <div>
-                            <label>Họ tên:</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label>Địa chỉ:</label>
-                            <input
-                                type="text"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label>Số điện thoại:</label>
-                            <input
-                                type="text"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                    </>
-                )}
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Đang xử lý...' : isLogin ? 'Đăng nhập' : 'Đăng ký'}
+                <button type="submit" disabled={loading} className="submit-button">
+                    {loading ? 'Đang xử lý...' : 'Đăng nhập'}
                 </button>
             </form>
-            <p>
-                {isLogin ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}
-                <button onClick={() => setIsLogin(!isLogin)}>
-                    {isLogin ? 'Đăng ký' : 'Đăng nhập'}
-                </button>
+            <p className="register-link">
+                Chưa có tài khoản? <a href="/register">Đăng ký</a>
             </p>
         </div>
     );

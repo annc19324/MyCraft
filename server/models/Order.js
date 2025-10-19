@@ -1,23 +1,55 @@
 const mongoose = require('mongoose');
 
-const orderSchema = new mongoose.Schema({
-    orderId: { type: String, required: true, unique: true },
-    customerInfo: {
-        name: { type: String, required: true },
-        address: { type: String, required: true },
-        phone: { type: String, required: true },
+const orderItemSchema = new mongoose.Schema({
+    productId: {
+        type: String,
+        required: [true, 'productId là bắt buộc'],
     },
-    items: [
-        {
-            name: { type: String, required: true },
-            price: { type: Number, required: true },
-            imageUrl: { type: String },
-            productId: { type: String },
+    name: {
+        type: String,
+        required: [true, 'Tên sản phẩm là bắt buộc'],
+        trim: true,
+    },
+    price: {
+        type: Number,
+        required: [true, 'Giá sản phẩm là bắt buộc'],
+        min: [0, 'Giá sản phẩm không được nhỏ hơn 0'],
+    },
+    imageUrl: {
+        type: String,
+        trim: true,
+        match: [/^https?:\/\/.+$/, 'URL hình ảnh không hợp lệ'],
+    },
+    quantity: {
+        type: Number,
+        required: [true, 'Số lượng là bắt buộc'],
+        min: [1, 'Số lượng phải lớn hơn 0'],
+    },
+});
+
+const orderSchema = new mongoose.Schema({
+    userId: {
+        type: String,
+        required: [true, 'userId là bắt buộc'],
+    },
+    orderId: {
+        type: String,
+        required: [true, 'orderId là bắt buộc'],
+        unique: true,
+    },
+    items: [orderItemSchema],
+    status: {
+        type: String,
+        enum: {
+            values: ['pending', 'completed', 'cancelled'],
+            message: 'Trạng thái phải là "pending", "completed", hoặc "cancelled"',
         },
-    ],
-    totalPrice: { type: Number, required: true },
-    status: { type: String, default: 'pending' },
-    createdAt: { type: Date, default: Date.now },
+        default: 'pending',
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
 });
 
 module.exports = mongoose.model('Order', orderSchema);

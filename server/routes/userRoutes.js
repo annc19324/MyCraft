@@ -1,43 +1,53 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
 const User = require('../models/User');
-const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcrypt');
+const checkAdmin = require('../middleware/checkAdmin');
 
-router.post('/register', async (req, res) => {
+// Lấy thông tin người dùng
+router.get('/:userId', async (req, res) => {
     try {
-        const { username, password, name, address, phone } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({
-            userId: uuidv4(),
-            username,
-            password: hashedPassword,
-            name,
-            address,
-            phone,
-            role: 'user',
+        const user = await User.findOne({ userId: req.params.userId });
+        if (!user) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+        }
+        res.json({
+            userId: user.userId,
+            username: user.username,
+            name: user.name,
+            address: user.address,
+            phone: user.phone,
+            role: user.role,
         });
-        await user.save();
-        res.status(201).json({ message: 'Đăng ký thành công' });
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        res.status(500).json({ message: err.message });
     }
 });
 
-router.post('/login', async (req, res) => {
+// Cập nhật thông tin người dùng (chỉ admin)
+router.put('/:userId', checkAdmin, async (req, res) => {
     try {
-        const { username, password } = req.body;
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ userId: req.params.userId });
         if (!user) {
-            return res.status(400).json({ message: 'Tên người dùng không tồn tại' });
+            return res.status(404).json({ message: 'Không tìm thấy người dùng' });
         }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Mật khẩu không đúng' });
-        }
-        res.json({ userId: user.userId, username: user.username, role: user.role });
+        if (req.body.username) user.username = req.body.username;
+        if (req.body.password) user.password = await bcrypt.hash(req.body.password, 10);
+        if (req.body.name) user.name = req.body.name;
+        if (req.body.address) user.address = req.body.address;
+        if (req.body.phone) user.phone = req.body.phone;
+        if (req.body.role) user.role = req.body.role;
+        const updatedUser = await user.save();
+        res.json({
+            userId: updatedUser.userId,
+            username: updatedUser.username,
+            name: updatedUser.name,
+            address: updatedUser.address,
+            phone: updatedUser.phone,
+            role: updatedUser.role,
+        });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(400).json({ message: err.message });
     }
 });
 

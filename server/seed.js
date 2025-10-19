@@ -26,6 +26,13 @@ const seedProducts = [
         description: 'day la vong tay thu cong 2',
         imageUrl: 'https://place.dog/100/100',
         stock: 200
+    }, {
+        // productId: '1', 
+        name: 'cong tay thu cong 3',
+        price: 100,
+        description: 'day la vong tay thu cong 3',
+        imageUrl: 'https://place.dog/100/100',
+        stock: 200
     },
 ];
 
