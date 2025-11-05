@@ -19,12 +19,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Mật khẩu là bắt buộc'],
         minlength: [8, 'Mật khẩu phải có ít nhất 8 ký tự'],
-        validate: {
-            validator: function (value) {
-                return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(value);
-            },
-            message: 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt',
-        },
+        // validate: {
+        //     validator: function (value) {
+        //         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(value);
+        //     },
+        //     message: 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt',
+        // },
     },
     name: {
         type: String,

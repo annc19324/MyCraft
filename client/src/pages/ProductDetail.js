@@ -1,7 +1,7 @@
+// src/pages/ProductDetail.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import './ProductDetail.css';
 
 function ProductDetail() {
     const [product, setProduct] = useState(null);
@@ -19,38 +19,27 @@ function ProductDetail() {
             setLoading(true);
             try {
                 const response = await axios.get(`http://localhost:5000/api/products/${id}`);
-                console.log('Product Detail Response:', response.data);
                 if (isMounted) {
                     setProduct(response.data);
                     setError(null);
                 }
             } catch (err) {
-                if (isMounted) {
-                    setError(err.response?.data?.message || 'Lỗi khi lấy chi tiết sản phẩm');
-                    console.error('Fetch product error:', err.response?.data || err.message);
-                }
+                if (isMounted) setError(err.response?.data?.message || 'Lỗi khi lấy chi tiết sản phẩm');
             } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
+                if (isMounted) setLoading(false);
             }
         };
 
         fetchProduct();
-
-        return () => {
-            isMounted = false;
-        };
+        return () => { isMounted = false; };
     }, [id]);
 
     const handleAddToCart = async () => {
-        if (!user || !user.userId) {
+        if (!user?.userId) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để thêm vào giỏ hàng' } });
             return;
         }
-
         try {
-            console.log('Adding to cart with user-id:', user.userId);
             await axios.post(
                 'http://localhost:5000/api/cart',
                 { productId: id, quantity: parseInt(quantity) },
@@ -59,12 +48,11 @@ function ProductDetail() {
             alert('Đã thêm vào giỏ hàng!');
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
-            console.error('Add to cart error:', err.response?.data || err.message);
         }
     };
 
     const handleBuyNow = () => {
-        if (!user || !user.userId) {
+        if (!user?.userId) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
             return;
         }
@@ -76,53 +64,81 @@ function ProductDetail() {
     if (!product) return <p>Không tìm thấy sản phẩm</p>;
 
     return (
-        <div className="product-detail-container">
-            {user && user.userId && (
-                <nav className="navbar">
-                    <Link to="/products">Sản phẩm</Link>
-                    <Link to="/cart">Giỏ hàng</Link>
-                    <button onClick={() => {
-                        if (window.confirm('Bạn có chắc muốn đăng xuất?')) {
-                            localStorage.removeItem('user');
-                            navigate('/login');
-                        }
-                    }}>Đăng xuất</button>
-                </nav>
-            )}
-            <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
-            <h2>{product.name}</h2>
-            <div className="product-detail-content">
-                <img src={product.imageUrl || 'https://place.dog/100/100'} alt={product.name} className="product-image" />
-                <div className="product-info">
-                    <p><strong>Mô tả:</strong> {product.description}</p>
-                    <p><strong>Giá:</strong> {product.price.toLocaleString()} VNĐ</p>
-                    <p><strong>Tồn kho:</strong> {product.stock}</p>
-                    <div className="quantity-selector">
-                        <label>Số lượng:</label>
-                        <input
-                            type="number"
-                            className="quantity-input"
-                            value={quantity}
-                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                            min="1"
-                            max={product.stock}
+        <div className="page-wrapper">
+            <nav className="navbar">
+                <div className="container">
+                    {user?.userId ? (
+                        <>
+                            <Link to="/products">Sản phẩm</Link>
+                            <Link to="/cart">Giỏ hàng</Link>
+                            <button onClick={() => {
+                                if (window.confirm('Bạn có chắc muốn đăng xuất?')) {
+                                    localStorage.removeItem('user');
+                                    navigate('/login');
+                                }
+                            }}>Đăng xuất</button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login">Đăng nhập</Link>
+                            <Link to="/register">Đăng ký</Link>
+                        </>
+                    )}
+                </div>
+            </nav>
+
+            <div className="page-content">
+                <div className="product-detail-container">
+                    <h2>{product.name}</h2>
+
+                    <div className="product-detail-content">
+                        <img
+                            src={product.imageUrl || 'https://place.dog/100/100'}
+                            alt={product.name}
+                            className="product-image"
                         />
-                    </div>
-                    <div className="product-actions">
-                        <button
-                            onClick={handleAddToCart}
-                            disabled={product.stock === 0}
-                            className="add-to-cart-button"
-                        >
-                            Thêm vào giỏ hàng
-                        </button>
-                        <button
-                            onClick={handleBuyNow}
-                            disabled={product.stock === 0}
-                            className="buy-now-button"
-                        >
-                            Mua ngay
-                        </button>
+                        <div className="product-info">
+                            <p><strong>Mô tả:</strong> {product.description}</p>
+                            <p><strong>Giá:</strong> {product.price.toLocaleString()} VNĐ</p>
+                            <p><strong>Tồn kho:</strong> {product.stock}</p>
+
+                            <div className="quantity-selector">
+                                <label>Số lượng:</label>
+                                <input
+                                    type="number"
+                                    className="quantity-input"
+                                    value={quantity}
+                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                    min="1"
+                                    max={product.stock}
+                                />
+                            </div>
+
+                            {/* CÙNG HÀNG: Quay lại + 2 nút */}
+                            <div className="product-actions-row">
+
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={product.stock === 0}
+                                    className="add-to-cart-button"
+                                >
+                                    Thêm vào giỏ hàng
+                                </button>
+                                <button
+                                    onClick={handleBuyNow}
+                                    disabled={product.stock === 0}
+                                    className="buy-now-button"
+                                >
+                                    Mua ngay
+                                </button>
+                                <button
+                                    onClick={() => navigate(-1)}
+                                    className="back-button"
+                                >
+                                    Quay lại
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
