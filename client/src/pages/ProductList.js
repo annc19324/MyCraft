@@ -54,9 +54,9 @@ function ProductList() {
         }
     };
 
-    const handleBuyNow = (productId) => {
-        navigate('/checkout', { state: { selectedItems: [{ productId, quantity: 1 }] } });
-    };
+    // const handleBuyNow = (productId) => {
+    //     navigate('/checkout', { state: { selectedItems: [{ productId, quantity: 1 }] } });
+    // };
 
     return (
         <div className="page-wrapper">
@@ -65,10 +65,8 @@ function ProductList() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <button onClick={() => {
-                        if (window.confirm('Bạn có chắc muốn đăng xuất?')) {
-                            localStorage.removeItem('user');
-                            navigate('/login');
-                        }
+                        localStorage.removeItem('user');
+                        navigate('/login');
                     }}>Đăng xuất</button>
                 </div>
             </nav>

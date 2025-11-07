@@ -284,7 +284,7 @@ function AdminDashboard() {
                                                             <td>{product.price.toLocaleString()} VNĐ</td>
                                                             <td>{product.stock}</td>
                                                             <td>
-                                                                <button onClick={() => handleEditProduct(product)} className="action-button">
+                                                                <button onClick={() => handleEditProduct(product)} className="action-button edit">
                                                                     Sửa
                                                                 </button>
                                                                 <button onClick={() => handleDeleteProduct(product._id)} className="action-button delete">

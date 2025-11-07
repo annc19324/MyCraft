@@ -31,7 +31,9 @@
 .submit-button,
 .checkout-button,
 .place-order-button,
-.back-button-in-cart {
+.back-button-in-cart,
+.action-button.edit,
+.action-button.delete {
     background: #2196F3;
     color: white;
     padding: 0.65rem 1.25rem;
@@ -45,6 +47,20 @@
     display: inline-block;
 }
 
+.action-button.edit,
+.action-button.delete {
+    padding: 0.25rem 0.5rem;
+    font-weight: 200;
+    font-size: 0.95rem;
+    margin: 2px;
+}
+
+.action-button.delete {
+    background-color: red;
+}
+
+
+
 .navbar a:hover,
 .navbar button:hover,
 .back-button:hover,
@@ -54,7 +70,9 @@
 .submit-button:hover,
 .checkout-button:hover,
 .place-order-button:hover,
-.back-button-in-cart:hover {
+.back-button-in-cart:hover,
+.action-button.edit:hover,
+.action-button.delete:hover {
     background: #1976D2;
 }
 
@@ -89,7 +107,7 @@ button:disabled,
 
 .product-image {
     width: 100%;
-    height: 80px;
+    height: 300px;
     object-fit: cover;
     border-radius: 12px 12px 0 0;
 }
