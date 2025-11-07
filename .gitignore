@@ -6,3 +6,4 @@ client/.env
 server/.env
 server/uploads/
 client/build/
+backup_mycraft
