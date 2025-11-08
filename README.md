@@ -1,4 +1,4 @@
-<img width="639" height="580" alt="image" src="https://github.com/user-attachments/assets/ee99752a-d343-4ba0-82d7-0e17b5afa555" /># My Craft - Cửa hàng bán đồ handmade
+# My Craft - Cửa hàng bán đồ handmade
 
 **MSSV**: 22810310030
 **Họ tên**: Lê Thiên An  
