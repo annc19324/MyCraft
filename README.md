@@ -73,10 +73,12 @@ cd MyCraft
 # Backend
 cd server
 npm install
+npm install express mongoose bcrypt jsonwebtoken multer cors dotenv
 
 # Frontend
 cd ../client
 npm install
+npm install react-router-dom axios
 
 ## Bước 3: Cấu hình DB
 tạo .env
