@@ -1,4 +1,3 @@
-// src/pages/AdminDashboard.js
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -78,7 +77,7 @@ function AdminDashboard() {
             setProducts([...products, response.data]);
             setFormData({ name: '', description: '', price: '', stock: '', imageUrl: '' });
             setImageFile(null);
-            alert('Thêm sản phẩm thành công!');
+            // alert('Thêm sản phẩm thành công!');
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi thêm sản phẩm');
         } finally {
@@ -169,7 +168,7 @@ function AdminDashboard() {
         <div className="page-wrapper">
             <div className="admin-dashboard">
                 <div className="sidebar">
-                    <h3>Quản lý Admin</h3>
+                    <h3>Admin</h3>
                     <div className="sidebar-buttons">
                         <button
                             className={activeTab === 'overview' ? 'active' : ''}
@@ -278,7 +277,7 @@ function AdminDashboard() {
                                                     {currentProducts.map((product) => (
                                                         <tr key={product._id}>
                                                             <td>
-                                                                <img src={product.imageUrl} alt={product.name} className="product-image" />
+                                                                <img src={product.imageUrl} alt={product.name} className="product-image product-image_admin" />
                                                             </td>
                                                             <td>{product.name}</td>
                                                             <td>{product.price.toLocaleString()} VNĐ</td>

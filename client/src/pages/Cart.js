@@ -26,8 +26,9 @@ function Cart() {
                     headers: { 'user-id': user.userId },
                 });
                 if (isMounted) {
-                    setCartItems(response.data.items || []);
-                    setSelectedItems(response.data.items.map(item => item.productId));
+                    const items = response.data.items || [];
+                    setCartItems(items);
+                    setSelectedItems(items.map(item => item.productId.toString()));
                     setError(null);
                 }
             } catch (err) {
@@ -58,10 +59,11 @@ function Cart() {
     };
 
     const handleSelectItem = (productId) => {
+        const idStr = productId.toString();
         setSelectedItems(prev =>
-            prev.includes(productId)
-                ? prev.filter(id => id !== productId)
-                : [...prev, productId]
+            prev.includes(idStr)
+                ? prev.filter(id => id !== idStr)
+                : [...prev, idStr]
         );
     };
 
@@ -74,7 +76,25 @@ function Cart() {
             alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
             return;
         }
-        navigate('/checkout', { state: { selectedItems } });
+        const formattedSelectedItems = selectedItems.map(id => ({
+            productId: id.toString(),
+            quantity: cartItems.find(item => item.productId === id)?.quantity || 1
+        }));
+        navigate('/checkout', { state: { selectedItems: formattedSelectedItems } });
+    };
+
+    const handleRemoveItem = async (productId) => {
+        try {
+            await axios.delete(
+                `http://localhost:5000/api/cart/${productId.toString()}`,
+                { headers: { 'user-id': user.userId } },
+            );
+
+            setCartItems(prev => prev.filter(item => item.productId !== productId));
+            setSelectedItems(prev => prev.filter(id => id !== productId.toString()));
+        } catch (err) {
+            setError(err.response?.data?.message || 'Lỗi khi xóa');
+        }
     };
 
     return (
@@ -96,7 +116,13 @@ function Cart() {
                     {error && <p className="error">{error}</p>}
                     {loading && <p>Đang tải...</p>}
                     {!loading && cartItems.length === 0 ? (
-                        <p>Giỏ hàng trống</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <p style={{ textAlign: 'center' }}>chưa có sản phẩm nào trong giỏ hàng, hãy trở lại trang chủ để thêm vào giỏ hàng</p>
+                            <button style={{ width: '150px', marginTop: '20px' }} onClick={() => navigate('/')} className="back-button-in-cart">
+                                Trang chủ
+                            </button>
+                        </div>
+
                     ) : (
                         <div>
                             <table className="cart-table">
@@ -108,6 +134,7 @@ function Cart() {
                                         <th>Số lượng</th>
                                         <th>Giá</th>
                                         <th>Tổng</th>
+                                        <th>xóa</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -139,6 +166,15 @@ function Cart() {
                                             </td>
                                             <td>{item.price.toLocaleString()} VNĐ</td>
                                             <td>{(item.price * item.quantity).toLocaleString()} VNĐ</td>
+                                            <td>
+                                                <button
+                                                    onClick={() => handleRemoveItem(item.productId)}
+                                                    className="action-button delete"
+                                                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                                                >
+                                                    Xóa
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

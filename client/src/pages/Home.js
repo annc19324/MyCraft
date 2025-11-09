@@ -39,7 +39,27 @@ function Home() {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
             return;
         }
-        navigate('/checkout', { state: { selectedItems: [{ productId, quantity: 1 }] } });
+        navigate('/checkout', {
+            state: {
+                selectedItems: [{
+                    productId: productId.toString(), 
+                    quantity: 1
+                }]
+            }
+        });
+    };
+
+    const handleAddToCart = async (productId) => {
+        try {
+            await axios.post(
+                'http://localhost:5000/api/cart',
+                { productId, quantity: 1 },
+                { headers: { 'user-id': user.userId } }
+            );
+            alert('Đã thêm vào giỏ hàng!');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
+        }
     };
 
     return (
@@ -90,14 +110,23 @@ function Home() {
                                                 to={`/product/${product._id}`}
                                                 className="view-details-button"
                                             >
-                                                Xem chi tiết
+                                                Xem
                                             </Link>
+
+                                            <button
+                                                onClick={() => handleAddToCart(product._id)}
+                                                disabled={product.stock === 0}
+                                                className="add-to-cart-button"
+                                            >
+                                                Thêm vào giỏ
+                                            </button>
+
                                             <button
                                                 onClick={() => handleBuyNow(product._id)}
                                                 disabled={product.stock === 0}
                                                 className="buy-now-button"
                                             >
-                                                Mua ngay
+                                                Mua
                                             </button>
                                         </div>
                                     </div>

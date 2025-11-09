@@ -58,6 +58,20 @@ function ProductList() {
     //     navigate('/checkout', { state: { selectedItems: [{ productId, quantity: 1 }] } });
     // };
 
+    const handleBuyNow = (productId) => {
+        if (!user?.userId) {
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
+            return;
+        }
+        navigate('/checkout', {
+            state: {
+                selectedItems: [{
+                    productId: productId.toString(),
+                    quantity: 1
+                }]
+            }
+        });
+    };
     return (
         <div className="page-wrapper">
             <nav className="navbar">
@@ -100,7 +114,7 @@ function ProductList() {
                                                 to={`/product/${product._id}`}
                                                 className="view-details-button"
                                             >
-                                                Xem chi tiết
+                                                Xem
                                             </Link>
                                             <button
                                                 onClick={() => handleAddToCart(product._id)}
@@ -108,6 +122,14 @@ function ProductList() {
                                                 className="add-to-cart-button"
                                             >
                                                 Thêm vào giỏ
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleBuyNow(product._id)}
+                                                disabled={product.stock === 0}
+                                                className="buy-now-button"
+                                            >
+                                                Mua
                                             </button>
                                         </div>
                                     </div>

@@ -16,7 +16,7 @@ function Login() {
             if (user.role === 'admin') {
                 navigate('/admin');
             } else {
-                navigate('/products');
+                navigate('/');
             }
         }
     }, [navigate, user]);
@@ -42,7 +42,7 @@ function Login() {
             if (response.data.role === 'admin') {
                 navigate('/admin');
             } else {
-                navigate('/products');
+                navigate('/');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi đăng nhập');

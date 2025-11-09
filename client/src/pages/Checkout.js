@@ -26,6 +26,11 @@ function Checkout() {
                 setLoading(false);
                 return;
             }
+            //dam bao productid la chuoi
+            const formattedItems = selectedItems.map(item => ({
+                ...item,
+                productId: item.productId.toString()
+            }));
 
             setLoading(true);
             try {
