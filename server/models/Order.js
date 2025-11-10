@@ -73,6 +73,21 @@ const orderSchema = new mongoose.Schema({
         },
         default: 'pending',
     },
+
+    paymentMethod: {
+        type: String,
+        enum: ['cod', 'qr'],
+        default: 'cod',
+        required: true
+    },
+
+    paymentStatus: {
+        type: String,
+        enum: ['unpaid', 'paid', 'refunded'],
+        default: 'unpaid',
+        required: true
+    },
+
     createdAt: {
         type: Date,
         default: Date.now,

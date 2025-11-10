@@ -64,14 +64,11 @@ function Order() {
     };
 
     const startEdit = (order) => {
-        if (order.status !== 'pending') {
-            alert('Chỉ có thể chỉnh sửa khi đơn hàng đang chờ xử lý');
-            return;
-        }
+        if (order.status !== 'pending') return alert('Chỉ sửa được đơn chờ xử lý');
         setEditingOrderId(order.orderId);
         setEditForm({
-            name: userInfo.name,
-            phone: userInfo.phone,
+            name: order.name || userInfo.name,
+            phone: order.phone || userInfo.phone,
             address: order.address || userInfo.address,
         });
     };
@@ -125,7 +122,15 @@ function Order() {
                                                 order.status === 'completed' ? 'Hoàn thành' :
                                                     order.status === 'cancelled' ? 'Đã hủy' : order.status}
                                         </span>
+                                        <span className={`status ${order.paymentStatus}`}>
+                                            {order.paymentStatus === 'unpaid' ? 'Chưa thanh toán' :
+                                                order.paymentStatus === 'paid' ? 'Đã thanh toán' :
+                                                    'Đã hoàn tiền'}
+                                        </span>
                                     </div>
+                                    <p><strong>Phương thức:</strong>
+                                        {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng' : 'Mã QR'}
+                                    </p>
                                     <p>Ngày đặt: {formatDate(order.createdAt)}</p>
 
                                     {/* Thông tin giao hàng */}
@@ -134,8 +139,9 @@ function Order() {
                                             <input placeholder="Họ tên" value={editForm.name} onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value }))} />
                                             <input placeholder="SĐT" value={editForm.phone} onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))} />
                                             <textarea placeholder="Địa chỉ" value={editForm.address} onChange={e => setEditForm(prev => ({ ...prev, address: e.target.value }))} />
-                                            <button onClick={saveEdit}>Lưu</button>
-                                            <button onClick={() => setEditingOrderId(null)}>Hủy</button>
+
+                                            <button style={{ marginTop: '10px' }} onClick={saveEdit}>Lưu</button>
+                                            <button style={{ marginLeft: '10px' }} onClick={() => setEditingOrderId(null)}>Hủy</button>
                                         </div>
                                     ) : (
                                         <p><strong>Giao đến:</strong> {order.address || userInfo.address}</p>

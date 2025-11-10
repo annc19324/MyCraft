@@ -5,7 +5,7 @@ import axios from 'axios';
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
-    const [selectedItems, setSelectedItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState([]); // ← MẢNG productId (string)
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -47,10 +47,7 @@ function Cart() {
         try {
             await axios.put(
                 'http://localhost:5000/api/cart',
-                {
-                    productId: productId.toString(),
-                    quantity: q
-                },
+                { productId: productId.toString(), quantity: q },
                 { headers: { 'user-id': user.userId } }
             );
             setCartItems(prev => prev.map(item =>
@@ -71,19 +68,38 @@ function Cart() {
     };
 
     const totalPrice = cartItems
-        .filter(item => selectedItems.includes(item.productId))
+        .filter(item => selectedItems.includes(item.productId.toString()))
         .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    // SỬA: LẤY THÔNG TIN TỪ cartItems, KHÔNG TỪ selectedItems
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
-            alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+            alert('Vui lòng chọn ít nhất 1 sản phẩm');
             return;
         }
-        const formattedSelectedItems = selectedItems.map(id => ({
-            productId: id.toString(),
-            quantity: cartItems.find(item => item.productId === id)?.quantity || 1
-        }));
-        navigate('/checkout', { state: { selectedItems: formattedSelectedItems } });
+
+        // LẤY SẢN PHẨM ĐÃ CHỌN TỪ cartItems
+        const selectedFullItems = cartItems
+            .filter(item => selectedItems.includes(item.productId.toString()))
+            .map(item => ({
+                productId: item.productId,
+                name: item.name,
+                price: item.price,
+                imageUrl: item.imageUrl,
+                quantity: item.quantity
+            }));
+
+        if (selectedFullItems.length === 0) {
+            alert('Không có sản phẩm hợp lệ để thanh toán');
+            return;
+        }
+
+        navigate('/checkout', {
+            state: {
+                selectedItems: selectedFullItems,
+                fromCart: true
+            }
+        });
     };
 
     const handleRemoveItem = async (productId) => {
@@ -121,12 +137,11 @@ function Cart() {
                     {loading && <p>Đang tải...</p>}
                     {!loading && cartItems.length === 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <p style={{ textAlign: 'center' }}>chưa có sản phẩm nào trong giỏ hàng, hãy trở lại trang chủ để thêm vào giỏ hàng</p>
+                            <p style={{ textAlign: 'center' }}>Chưa có sản phẩm nào trong giỏ hàng, hãy trở lại trang chủ để thêm vào giỏ hàng</p>
                             <button style={{ width: '150px', marginTop: '20px' }} onClick={() => navigate('/')} className="back-button-in-cart">
                                 Trang chủ
                             </button>
                         </div>
-
                     ) : (
                         <div>
                             <table className="cart-table">
@@ -138,7 +153,7 @@ function Cart() {
                                         <th>Số lượng</th>
                                         <th>Giá</th>
                                         <th>Tổng</th>
-                                        <th>xóa</th>
+                                        <th>Xóa</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -147,7 +162,7 @@ function Cart() {
                                             <td>
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedItems.includes(item.productId)}
+                                                    checked={selectedItems.includes(item.productId.toString())}
                                                     onChange={() => handleSelectItem(item.productId)}
                                                 />
                                             </td>

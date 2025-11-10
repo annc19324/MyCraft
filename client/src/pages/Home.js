@@ -34,7 +34,7 @@ function Home() {
         return () => { isMounted = false; };
     }, []);
 
-    const handleBuyNow = (productId) => {
+    const handleBuyNow = (product) => {
         if (!user?.userId) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
             return;
@@ -42,7 +42,7 @@ function Home() {
         navigate('/checkout', {
             state: {
                 selectedItems: [{
-                    productId: productId.toString(),
+                    productId: product._id.toString(),
                     quantity: 1
                 }]
             }
@@ -50,6 +50,10 @@ function Home() {
     };
 
     const handleAddToCart = async (productId) => {
+        if (!user?.userId) {
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập để thêm vào giỏ hàng' } });
+            return;
+        }
         try {
             await axios.post(
                 'http://localhost:5000/api/cart',
@@ -123,7 +127,7 @@ function Home() {
                                             </button>
 
                                             <button
-                                                onClick={() => handleBuyNow(product._id)}
+                                                onClick={() => handleBuyNow(product)}
                                                 disabled={product.stock === 0}
                                                 className="buy-now-button"
                                             >

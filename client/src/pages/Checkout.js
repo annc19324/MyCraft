@@ -1,17 +1,20 @@
-// src/pages/Checkout.js (ĐÃ SỬA HOÀN CHỈNH)
+// src/pages/Checkout.js – ĐÃ SỬA HOÀN CHỈNH
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
+
 function Checkout() {
     const [orderItems, setOrderItems] = useState([]);
     const [userInfo, setUserInfo] = useState({ name: '', phone: '', address: '' });
     const [editing, setEditing] = useState(false);
     const [form, setForm] = useState({ name: '', phone: '', address: '' });
+    const [paymentMethod, setPaymentMethod] = useState('cod');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const user = JSON.parse(localStorage.getItem('user') || 'null');
+
     const selectedItems = location.state?.selectedItems || [];
 
     useEffect(() => {
@@ -21,8 +24,8 @@ function Checkout() {
         }
 
         fetchUserInfo();
-        fetchOrderItems();
-    }, [navigate, user?.userId]);
+        fetchMissingProductDetails();
+    }, [navigate, user?.userId, selectedItems]);
 
     const fetchUserInfo = async () => {
         try {
@@ -38,31 +41,44 @@ function Checkout() {
         }
     };
 
-    const fetchOrderItems = async () => {
+    const fetchMissingProductDetails = async () => {
         if (selectedItems.length === 0) {
-            setError('Không có sản phẩm nào để thanh toán');
+            setError('Không có sản phẩm');
             return;
         }
 
         setLoading(true);
         try {
-            const response = await axios.post(
-                'http://localhost:5000/api/cart/selected',
-                { selectedItems },
-                { headers: { 'user-id': user.userId } }
+            const completedItems = await Promise.all(
+                selectedItems.map(async (item) => {
+                    if (item.price && item.name && item.imageUrl) {
+                        return item;
+                    }
+
+                    const res = await axios.get(`http://localhost:5000/api/products/${item.productId}`);
+                    const product = res.data;
+
+                    return {
+                        productId: product._id,
+                        name: product.name,
+                        price: product.price,
+                        imageUrl: product.imageUrl || '',
+                        quantity: item.quantity || 1
+                    };
+                })
             );
-            setOrderItems(response.data.items || []);
-            setError(null);
+
+            setOrderItems(completedItems);
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi khi lấy thông tin thanh toán');
+            setError('Lỗi tải sản phẩm');
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-    const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalPrice = orderItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
 
-    //handlePlaceOrder
     const handlePlaceOrder = async () => {
         if (!form.name || !form.phone || !form.address) {
             alert('Vui lòng điền đầy đủ thông tin giao hàng');
@@ -75,6 +91,7 @@ function Checkout() {
                 name: form.name,
                 phone: form.phone,
                 address: form.address,
+                paymentMethod
             };
 
             await axios.post(
@@ -83,12 +100,13 @@ function Checkout() {
                 { headers: { 'user-id': user.userId } }
             );
 
-            // Xóa giỏ hàng đã chọn
-            await axios.post(
-                'http://localhost:5000/api/cart/remove-selected',
-                { selectedItems },
-                { headers: { 'user-id': user.userId } }
-            );
+            if (location.state?.fromCart) {
+                await axios.post(
+                    'http://localhost:5000/api/cart/remove-selected',
+                    { selectedItems: selectedItems.map(i => ({ productId: i.productId })) },
+                    { headers: { 'user-id': user.userId } }
+                );
+            }
 
             alert('Đặt hàng thành công!');
             navigate('/orders');
@@ -126,7 +144,25 @@ function Checkout() {
                                 <textarea placeholder="Địa chỉ" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} rows="3" />
                                 <div className="form-actions">
                                     <button onClick={() => { setEditing(false); setForm(userInfo); }}>Hủy</button>
-                                    <button onClick={() => setEditing(false)} className="primary">Lưu</button>
+                                    <button 
+                                        onClick={async () => {
+                                            try {
+                                                await axios.put(
+                                                    'http://localhost:5000/api/users/profile',
+                                                    form,
+                                                    { headers: { 'user-id': user.userId } }
+                                                );
+                                                setUserInfo(form);
+                                                setEditing(false);
+                                                alert('Cập nhật thành công!');
+                                            } catch (err) {
+                                                alert('Lỗi: ' + (err.response?.data?.message || 'Không thể lưu'));
+                                            }
+                                        }} 
+                                        className="primary"
+                                    >
+                                        Lưu
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -137,6 +173,17 @@ function Checkout() {
                                 <button onClick={() => { setEditing(true); setForm(userInfo); }} className="edit-btn">Sửa</button>
                             </div>
                         )}
+                    </div>
+
+                    {/* === PHƯƠNG THỨC THANH TOÁN === */}
+                    <div className="section">
+                        <h3>Phương thức thanh toán</h3>
+                        <div className="payment-select-container">
+                            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="payment-select">
+                                <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                                <option value="qr">Thanh toán bằng mã QR</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* === SẢN PHẨM === */}
@@ -152,11 +199,11 @@ function Checkout() {
                                 <tbody>
                                     {orderItems.map(item => (
                                         <tr key={item.productId}>
-                                            <td><img src={item.imageUrl} alt={item.name} className="checkout-image" /></td>
-                                            <td>{item.name}</td>
-                                            <td>{item.quantity}</td>
-                                            <td>{item.price.toLocaleString()} VNĐ</td>
-                                            <td>{(item.price * item.quantity).toLocaleString()} VNĐ</td>
+                                            <td><img src={item.imageUrl || 'https://place.dog/100/100'} alt={item.name} className="checkout-image" /></td>
+                                            <td>{item.name || 'Không rõ'}</td>
+                                            <td>{item.quantity || 1}</td>
+                                            <td>{(item.price || 0).toLocaleString()} VNĐ</td>
+                                            <td>{((item.price || 0) * (item.quantity || 1)).toLocaleString()} VNĐ</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -164,18 +211,15 @@ function Checkout() {
                         )}
                     </div>
 
-                    {/* === TỔNG TIỀN === */}
                     <div className="section total-section">
                         <p className="total">Tổng tiền: <strong>{totalPrice.toLocaleString()} VNĐ</strong></p>
                     </div>
 
-                    {/* === NÚT ĐẶT HÀNG === */}
                     <div className="checkout-actions">
                         <button onClick={handlePlaceOrder} disabled={loading} className="place-order-btn">
                             {loading ? 'Đang xử lý...' : 'Đặt hàng'}
                         </button>
-                        <Link to="/cart" className="back-button">Quay lại</Link>
-
+                        <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
                     </div>
                 </div>
             </div>

@@ -3,10 +3,11 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const Product = require('../models/Product');
 
 // === TẠO ĐƠN HÀNG ===
 router.post('/', async (req, res) => {
-    const { items, name, phone, address } = req.body;
+    const { items, name, phone, address, paymentMethod = 'cod' } = req.body;
     const userId = req.headers['user-id'];
 
     if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });
@@ -16,6 +17,17 @@ router.post('/', async (req, res) => {
     try {
         const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+        // === KIỂM TRA + GIẢM TỒN KHO ===
+        for (const item of items) {
+            const product = await Product.findById(item.productId);
+            if (!product) return res.status(404).json({ message: `Sản phẩm không tồn tại: ${item.name}` });
+            if (product.stock < item.quantity) {
+                return res.status(400).json({ message: `Không đủ hàng: ${product.name} (còn ${product.stock})` });
+            }
+            product.stock -= item.quantity;
+            await product.save();
+        }
+
         const order = new Order({
             userId,
             orderId: `ORDER_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -24,11 +36,13 @@ router.post('/', async (req, res) => {
             phone,
             address,
             total,
+            paymentMethod,
+            paymentStatus: 'unpaid'
         });
 
         await order.save();
 
-        // Xóa sản phẩm khỏi giỏ
+        // Xóa giỏ
         const productIds = items.map(i => i.productId);
         await Cart.updateOne(
             { userId },
@@ -55,19 +69,18 @@ router.get('/', async (req, res) => {
     }
 });
 
-// === CẬP NHẬT THÔNG TIN GIAO HÀNG (chỉ khi pending) ===
-router.put('/:id', async (req, res) => {
-    const { id } = req.params;
+// === CẬP NHẬT ĐỊA CHỈ===
+router.put('/:id/address', async (req, res) => {
+    const { id } = req.params;  // id = orderId
     const { name, phone, address } = req.body;
     const userId = req.headers['user-id'];
 
     try {
-        const order = await Order.findById(id);
+        const order = await Order.findOne({ orderId: id });  // SỬA: findOne({ orderId: id })
         if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         if (order.userId !== userId) return res.status(403).json({ message: 'Không có quyền' });
         if (order.status !== 'pending') return res.status(400).json({ message: 'Chỉ sửa được khi đang chờ xử lý' });
 
-        // Cập nhật chỉ những trường được gửi
         if (name) order.name = name;
         if (phone) order.phone = phone;
         if (address) order.address = address;
@@ -79,21 +92,36 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// === HỦY ĐƠN ===
-router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
+// === HỦY ĐƠN (SỬA: Tìm theo orderId) ===
+router.put('/:id/cancel', async (req, res) => {
+    const { id } = req.params;  // id = orderId (string như "ORDER_...")
     const userId = req.headers['user-id'];
 
     try {
-        const order = await Order.findById(id);
+        // SỬA: Tìm theo orderId thay vì _id
+        const order = await Order.findOne({ orderId: id });
         if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
         if (order.userId !== userId) return res.status(403).json({ message: 'Không có quyền' });
         if (order.status !== 'pending') return res.status(400).json({ message: 'Chỉ hủy được khi đang chờ' });
 
+        // Hoàn tồn kho (nếu có logic này)
+        for (const item of order.items) {
+            const product = await Product.findById(item.productId);
+            if (product) {
+                product.stock += item.quantity;
+                await product.save();
+            }
+        }
+
         order.status = 'cancelled';
+        if (order.paymentStatus === 'paid') {
+            order.paymentStatus = 'refunded';
+        }
         await order.save();
-        res.json({ message: 'Đã hủy đơn hàng' });
+
+        res.json({ message: 'Đã hủy và hoàn tồn kho' });
     } catch (err) {
+        console.error('Lỗi hủy đơn:', err);
         res.status(500).json({ message: err.message });
     }
 });

@@ -1,0 +1,9 @@
+.back-button-in-cart {
+    margin-left: 10px;
+}
+
+.edit-address input,
+.edit-address textarea {
+    display: block;
+    margin-top: 10px;
+}

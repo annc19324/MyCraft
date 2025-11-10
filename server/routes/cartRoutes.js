@@ -64,6 +64,12 @@ router.post('/remove-selected', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+    const { productId, quantity } = req.body;
+    const userId = req.headers['user-id'];
+
+    if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' }); // BẮT BUỘC
+    if (!productId || !quantity) return res.status(400).json({ message: 'Thiếu thông tin' });
+
     try {
         const userId = req.headers['user-id'];
         const { productId, quantity } = req.body;

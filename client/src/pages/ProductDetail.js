@@ -56,7 +56,16 @@ function ProductDetail() {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
             return;
         }
-        navigate('/checkout', { state: { selectedItems: [{ productId: id, quantity: parseInt(quantity) }] } });
+        // navigate('/checkout', { state: { selectedItems: [{ productId: id, quantity: parseInt(quantity) }] } });
+        // Trong handleBuyNow
+        navigate('/checkout', {
+            state: {
+                selectedItems: [{
+                    productId: product._id.toString(), // ĐẢM BẢO STRING
+                    quantity: 1
+                }]
+            }
+        });
     };
 
     if (loading) return <p>Đang tải...</p>;
