@@ -1,29 +1,6 @@
 /* src/assets/styles/pages.css */
 
-/* Trang chung */
-.home-container,
-.product-list-container,
-.cart-container,
-.checkout-container,
-.product-detail-container,
-.login-container,
-.register-container {
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
-.home-container h2,
-.product-list-container h2,
-.cart-container h2,
-.checkout-container h2,
-.product-detail-container h2 {
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-/* Grid – Card nhỏ */
+/* === GRID SẢN PHẨM === */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -32,12 +9,74 @@
     padding: 0 0.5rem;
 }
 
-/* Product Detail */
+/* === PRODUCT CARD === */
+.product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.product-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 12px 12px 0 0;
+}
+
+.product-image_admin {
+    width: 75px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.card-body {
+    padding: 0.75rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0.3rem 0;
+    color: #1e293b;
+}
+
+.card-price {
+    color: #2196F3;
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 0.3rem 0;
+}
+
+.product-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* === PRODUCT DETAIL === */
 .product-detail-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
     margin-top: 1.5rem;
+    align-items: start;
 }
 
 .product-detail-content img {
@@ -56,13 +95,15 @@
     margin: 1.25rem 0;
 }
 
-.product-actions {
+.product-actions-row {
     display: flex;
-    gap: 0.75rem;
-    margin-top: 1.25rem;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
-/* Login & Register */
+/* === LOGIN & REGISTER === */
 .login-container,
 .register-container {
     max-width: 400px;
@@ -71,22 +112,6 @@
     background: white;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.login-container h2,
-.register-container h2 {
-    margin-bottom: 1.5rem;
-}
-
-.form-group {
-    margin-bottom: 1.25rem;
-    text-align: left;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.4rem;
-    font-weight: 500;
 }
 
 .login-link,
@@ -103,97 +128,10 @@
     text-decoration: none;
 }
 
-/* Admin */
-.admin-dashboard {
-    display: flex;
-    min-height: 100vh;
-}
-
-.sidebar {
-    width: 240px;
-    background: white;
-    padding: 1.5rem;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.sidebar h3 {
-    margin-bottom: 1.5rem;
-    color: #2196F3;
-}
-
-.sidebar button {
-    width: 100%;
-    text-align: left;
-    margin-bottom: 0.5rem;
-    background: #2196F3;
-    color: white;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.sidebar button.active,
-.sidebar button:hover {
-    background: #1976D2;
-}
-
-.main-content {
-    flex: 1;
-    padding: 1.5rem;
-}
-
-.overview,
-.products-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    margin-bottom: 1.5rem;
-}
-
-.product-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    max-width: 600px;
-}
-
-.form-buttons {
-    grid-column: span 2;
-    display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-}
-
+/* === SEARCH BAR === */
 .search-container {
     max-width: 360px;
     margin: 0 auto 1.5rem;
-}
-
-/* src/assets/styles/pages.css */
-
-/* CÙNG HÀNG: Quay lại + Thêm giỏ + Mua ngay */
-.product-actions-row {
     display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.product-actions-row .back-button:hover {
-    background: #1976D2;
-}
-
-.product-actions-row .add-to-cart-button .back-button,
-.product-actions-row .buy-now-button .back-button {
-    flex: 1;
-    min-width: 140px;
-}
-
-.button-link {
-    width: 100%;
-    text-decoration: none;
+    gap: 0.5rem;
 }

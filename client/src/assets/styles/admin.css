@@ -1,0 +1,77 @@
+/* src/assets/styles/admin.css */
+.admin-dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 240px;
+    background: #1a1a1a;
+    color: white;
+    padding: 1.5rem;
+}
+
+.sidebar h3 {
+    margin: 0 0 1.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+    color: #2196F3;
+}
+
+.sidebar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sidebar-buttons .button-link {
+    width: 100%;
+    text-decoration: none;
+}
+
+.sidebar-buttons button {
+    width: 100%;
+    text-align: left;
+    background: #333;
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sidebar-buttons button:hover,
+.sidebar-buttons button.active {
+    background: #2196F3;
+}
+
+.main-content {
+    flex: 1;
+    padding: 1.5rem;
+    background: #f9f9f9;
+}
+
+.admin-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.product-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
+
+.form-buttons {
+    grid-column: span 2;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}

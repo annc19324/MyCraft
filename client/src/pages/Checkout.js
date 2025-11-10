@@ -62,6 +62,7 @@ function Checkout() {
 
     const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    //handlePlaceOrder
     const handlePlaceOrder = async () => {
         if (!form.name || !form.phone || !form.address) {
             alert('Vui lòng điền đầy đủ thông tin giao hàng');
@@ -69,17 +70,20 @@ function Checkout() {
         }
 
         try {
-            const itemsWithAddress = orderItems.map(item => ({
-                ...item,
-                address: `${form.name} | ${form.phone} | ${form.address}`
-            }));
+            const orderData = {
+                items: orderItems,
+                name: form.name,
+                phone: form.phone,
+                address: form.address,
+            };
 
             await axios.post(
                 'http://localhost:5000/api/orders',
-                { items: itemsWithAddress },
+                orderData,
                 { headers: { 'user-id': user.userId } }
             );
 
+            // Xóa giỏ hàng đã chọn
             await axios.post(
                 'http://localhost:5000/api/cart/remove-selected',
                 { selectedItems },
@@ -109,7 +113,6 @@ function Checkout() {
 
             <div className="page-content">
                 <div className="checkout-container">
-                    <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
                     <h2>Xác nhận đơn hàng</h2>
                     {error && <p className="error">{error}</p>}
 
@@ -168,10 +171,11 @@ function Checkout() {
 
                     {/* === NÚT ĐẶT HÀNG === */}
                     <div className="checkout-actions">
-                        <Link to="/cart" className="back-btn">Quay lại giỏ hàng</Link>
                         <button onClick={handlePlaceOrder} disabled={loading} className="place-order-btn">
                             {loading ? 'Đang xử lý...' : 'Đặt hàng'}
                         </button>
+                        <Link to="/cart" className="back-button">Quay lại</Link>
+
                     </div>
                 </div>
             </div>

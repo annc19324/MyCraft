@@ -1,12 +1,10 @@
 /* src/assets/styles/components.css */
 
-/* Navbar – 1000px, căn giữa */
+/* === NAVBAR === */
 .navbar {
     background: #2196F3;
     color: white;
     padding: 1rem 0;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
 }
 
@@ -18,22 +16,21 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 
-/* Tất cả nút = XANH NƯỚC BIỂN */
+/* === BUTTONS (tất cả nút xanh) === */
+button,
 .navbar a,
 .navbar button,
-.back-button,
-.view-details-button,
+.submit-button,
 .add-to-cart-button,
 .buy-now-button,
+.view-details-button,
 .back-button,
-.submit-button,
 .checkout-button,
-.place-order-button,
-.back-button-in-cart,
-.action-button.edit,
-.action-button.delete {
+.place-order-btn,
+.action-button {
     background: #2196F3;
     color: white;
     padding: 0.65rem 1.25rem;
@@ -47,144 +44,58 @@
     display: inline-block;
 }
 
-.action-button.edit,
-.action-button.delete {
-    padding: 0.25rem 0.5rem;
-    font-weight: 200;
-    font-size: 0.95rem;
-    margin: 2px;
-}
-
-.action-button.delete {
-    background-color: red;
-}
-
-
-
+button:hover,
 .navbar a:hover,
-.navbar button:hover,
-.back-button:hover,
-.view-details-button:hover,
+.submit-button:hover,
 .add-to-cart-button:hover,
 .buy-now-button:hover,
-.submit-button:hover,
+.view-details-button:hover,
+.back-button:hover,
 .checkout-button:hover,
-.place-order-button:hover,
-.back-button-in-cart:hover,
-.action-button.edit:hover,
-.action-button.delete:hover {
+.place-order-btn:hover,
+.action-button:hover {
     background: #1976D2;
 }
 
-/* Nút disabled */
 button:disabled,
 .submit-button:disabled,
-.checkout-button:disabled,
-.place-order-button:disabled,
 .add-to-cart-button:disabled,
-.buy-now-button:disabled,
-.back-button-in-cart:disabled {
+.buy-now-button:disabled {
     background: #94a3b8;
     cursor: not-allowed;
 }
 
-/* Product Card – NHỎ GỌN, 80PX ẢNH */
-.product-card {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
+/* Nút nhỏ */
+.action-button.edit,
+.action-button.delete {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    margin: 0 2px;
 }
 
-.product-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+.action-button.delete {
+    background: #f44336;
 }
 
-.product-image {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 12px 12px 0 0;
+.action-button.delete:hover {
+    background: #d32f2f;
 }
 
-.product-image_admin {
-    width: 75px;
-    height: 75px;
+/* === INPUT & FORM === */
+.form-group {
+    margin-bottom: 1.25rem;
+    text-align: left;
 }
 
-.card-body {
-    padding: 0.75rem;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
 }
 
-.card-title {
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin: 0.3rem 0;
-    color: #1e293b;
-    line-height: 1.3;
-}
-
-.card-price {
-    color: #2196F3;
-    font-weight: 700;
-    font-size: 1rem;
-    margin: 0.3rem 0;
-}
-
-.product-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    justify-content: center;
-}
-
-.view-details-button,
-.add-to-cart-button,
-.buy-now-button,
-.back-button {
-    flex: 1;
-    padding: 0.5rem 0.95rem;
-    font-size: 0.8rem;
-    border-radius: 8px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.view-details-button {
-    background: #2196F3;
-}
-
-.add-to-cart-button {
-    background: #2196F3;
-}
-
-.buy-now-button,
-.back-button {
-    background: #2196F3;
-}
-
-.view-details-button:hover,
-.add-to-cart-button:hover,
-.buy-now-button:hover,
-.back-button:hover {
-    background: #1976D2;
-}
-
-/* Input */
-.input,
-.form-group input,
-.form-group textarea,
-.quantity-input,
-.search-container input {
+input,
+textarea,
+select {
     width: 100%;
     padding: 0.75rem;
     border: 1.5px solid #e2e8f0;
@@ -194,26 +105,25 @@ button:disabled,
     transition: border 0.2s;
 }
 
-.input:focus,
-.form-group input:focus,
-.form-group textarea:focus,
-.quantity-input:focus,
-.search-container input:focus {
+input:focus,
+textarea:focus,
+select:focus {
     outline: none;
     border-color: #2196F3;
     box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
 }
 
 .quantity-input {
-    width: 60px;
+    width: 70px;
     text-align: center;
 }
 
-/* Table */
+/* === TABLE === */
 .table,
 .cart-table,
 .checkout-table,
-.product-table {
+.product-table,
+.order-items-table {
     width: 100%;
     border-collapse: collapse;
     background: white;
@@ -221,12 +131,14 @@ button:disabled,
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     margin: 1rem 0;
+    font-size: 0.95rem;
 }
 
 .table th,
 .cart-table th,
 .checkout-table th,
-.product-table th {
+.product-table th,
+.order-items-table th {
     background: #f1f5f9;
     padding: 0.75rem;
     text-align: left;
@@ -237,21 +149,22 @@ button:disabled,
 .table td,
 .cart-table td,
 .checkout-table td,
-.product-table td {
+.product-table td,
+.order-items-table td {
     padding: 0.75rem;
     border-top: 1px solid #e2e8f0;
 }
 
-.table img,
 .cart-image,
-.checkout-image {
+.checkout-image,
+.order-item-img {
     width: 50px;
     height: 50px;
     object-fit: cover;
     border-radius: 6px;
 }
 
-/* Pagination */
+/* === PAGINATION === */
 .pagination {
     display: flex;
     justify-content: center;
@@ -283,38 +196,4 @@ button:disabled,
     background: #f8fafc;
     cursor: not-allowed;
     opacity: 0.6;
-}
-
-/*  */
-/* src/assets/styles/components.css */
-.sidebar-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.sidebar-buttons button {
-    background: #2196F3;
-    color: white;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: left;
-    transition: background 0.2s;
-}
-
-.sidebar-buttons button:hover {
-    background: #1976D2;
-}
-
-.sidebar-buttons button.active {
-    background: #e3f2fd;
-    color: #2196F3;
-    font-weight: 700;
-}
-
-.back-button-in-cart {
-    margin-left: 10px;
 }

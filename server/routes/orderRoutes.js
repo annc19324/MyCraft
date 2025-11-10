@@ -1,93 +1,101 @@
+// server/routes/orderRoutes.js
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
-const Product = require('../models/Product');
+const Cart = require('../models/Cart');
 
-router.get('/', async (req, res) => {
+// === TẠO ĐƠN HÀNG ===
+router.post('/', async (req, res) => {
+    const { items, name, phone, address } = req.body;
+    const userId = req.headers['user-id'];
+
+    if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });
+    if (!items || items.length === 0) return res.status(400).json({ message: 'Giỏ hàng trống' });
+    if (!name || !phone || !address) return res.status(400).json({ message: 'Thiếu thông tin giao hàng' });
+
     try {
-        const userId = req.headers['user-id'];
-        if (!userId) {
-            return res.status(401).json({ message: 'Thiếu user-id trong header' });
-        }
-        const orders = await Order.find({ userId });
+        const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        const order = new Order({
+            userId,
+            orderId: `ORDER_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+            items,
+            name,
+            phone,
+            address,
+            total,
+        });
+
+        await order.save();
+
+        // Xóa sản phẩm khỏi giỏ
+        const productIds = items.map(i => i.productId);
+        await Cart.updateOne(
+            { userId },
+            { $pull: { items: { productId: { $in: productIds } } } }
+        );
+
+        res.status(201).json(order);
+    } catch (err) {
+        console.error('Lỗi tạo đơn:', err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// === LẤY ĐƠN HÀNG CỦA USER ===
+router.get('/', async (req, res) => {
+    const userId = req.headers['user-id'];
+    if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });
+
+    try {
+        const orders = await Order.find({ userId }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-router.post('/', async (req, res) => {
+// === CẬP NHẬT THÔNG TIN GIAO HÀNG (chỉ khi pending) ===
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, phone, address } = req.body;
+    const userId = req.headers['user-id'];
+
     try {
-        const userId = req.headers['user-id'];
-        const { items } = req.body;
-        if (!userId) {
-            return res.status(401).json({ message: 'Thiếu user-id trong header' });
-        }
-        if (!items || items.length === 0) {
-            return res.status(400).json({ message: 'Không có sản phẩm nào để đặt hàng' });
-        }
+        const order = await Order.findById(id);
+        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+        if (order.userId !== userId) return res.status(403).json({ message: 'Không có quyền' });
+        if (order.status !== 'pending') return res.status(400).json({ message: 'Chỉ sửa được khi đang chờ xử lý' });
 
-        // Validate items
-        for (const item of items) {
-            if (!item.productId || !item.quantity) {
-                return res.status(400).json({ message: 'Mỗi sản phẩm phải có productId và quantity' });
-            }
-            if (item.quantity < 1) {
-                return res.status(400).json({ message: 'Số lượng phải lớn hơn 0' });
-            }
-            const product = await Product.findById(item.productId);
-            if (!product) {
-                return res.status(404).json({ message: `Không tìm thấy sản phẩm ${item.productId}` });
-            }
-            if (product.stock < item.quantity) {
-                return res.status(400).json({ message: `Số lượng tồn kho không đủ cho sản phẩm ${product.name}` });
-            }
-        }
+        // Cập nhật chỉ những trường được gửi
+        if (name) order.name = name;
+        if (phone) order.phone = phone;
+        if (address) order.address = address;
 
-        const order = new Order({
-            userId,
-            orderId: Date.now().toString(),
-            items,
-            status: 'pending',
-        });
         await order.save();
-        res.status(201).json(order);
+        res.json(order);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// routes/orderRoutes.js
-router.put('/:orderId/cancel', async (req, res) => {
+// === HỦY ĐƠN ===
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+    const userId = req.headers['user-id'];
+
     try {
-        const userId = req.headers['user-id'];
-        const { orderId } = req.params;
-        const order = await Order.findOne({ orderId, userId });
-        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn' });
+        const order = await Order.findById(id);
+        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+        if (order.userId !== userId) return res.status(403).json({ message: 'Không có quyền' });
         if (order.status !== 'pending') return res.status(400).json({ message: 'Chỉ hủy được khi đang chờ' });
 
         order.status = 'cancelled';
         await order.save();
-        res.json(order);
+        res.json({ message: 'Đã hủy đơn hàng' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-router.put('/:orderId/address', async (req, res) => {
-    try {
-        const userId = req.headers['user-id'];
-        const { orderId } = req.params;
-        const { name, phone, address } = req.body;
-        const order = await Order.findOne({ orderId, userId });
-        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn' });
-        if (order.status !== 'pending') return res.status(400).json({ message: 'Không thể sửa khi đã xử lý' });
-
-        order.address = `${name} | ${phone} | ${address}`;
-        await order.save();
-        res.json(order);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
 module.exports = router;
