@@ -1,0 +1,150 @@
+/* src/styles/order.css */
+.order-history-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.order-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #ddd;
+}
+
+.order-header strong {
+    color: #1976d2;
+    font-size: 1.1rem;
+}
+
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status.pending {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.status.completed {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.status.cancelled {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.95rem;
+}
+
+.order-items-table th {
+    text-align: left;
+    padding: 10px 8px;
+    background: #f5f5f5;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #ddd;
+}
+
+.order-items-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-item-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.total {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #d32f2f;
+    text-align: right;
+    margin-top: 12px;
+}
+
+.order-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.edit-btn,
+.cancel-btn {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.edit-btn {
+    background: #2196F3;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #1976d2;
+}
+
+.cancel-btn {
+    background: #f44336;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #d32f2f;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .order-items-table {
+        font-size: 0.85rem;
+    }
+
+    .order-items-table th,
+    .order-items-table td {
+        padding: 8px 4px;
+    }
+}

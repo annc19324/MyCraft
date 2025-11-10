@@ -9,6 +9,12 @@ import Checkout from './pages/Checkout';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import './App.css';
+import Order from './pages/Order';
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminOrders from './pages/admin/AdminOrders'
+import AdminOverview from './pages/admin/AdminOverview'
+import AdminProducts from './pages/admin/AdminProducts'
+import AdminUsers from './pages/admin/AdminUsers'
 
 function App() {
     return (
@@ -22,6 +28,13 @@ function App() {
                 <Route path="/checkout" element={<ProtectedRoute component={Checkout} role="user" />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/" element={<Home />} />
+                <Route path="/orders" element={<ProtectedRoute component={Order} role="user" />} />
+                <Route path="/admin" element={<ProtectedRoute component={AdminLayout} role="admin" />}>
+                    <Route index element={<AdminOverview />} />
+                    <Route path="products" element={<AdminProducts />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="users" element={<div>Quản lý người dùng (sắp có)</div>} />
+                </Route>
             </Routes>
         </Router>
     );
@@ -32,16 +45,19 @@ function ProtectedRoute({ component: Component, role }) {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
     useEffect(() => {
-        if (!user || !user.userId) {
+        if (!user || !user.userId) {               // <-- kiểm tra userId
             navigate('/login', { state: { message: 'Vui lòng đăng nhập' } });
         } else if (role === 'admin' && user.role !== 'admin') {
             navigate('/products', { state: { message: 'Chỉ admin mới có quyền truy cập' } });
         } else if (role === 'user' && user.role === 'admin') {
             navigate('/admin');
         }
-    }, [navigate, user?.userId, role]);
+    }, [navigate, user, role]);
 
-    return user && user.userId && (role === 'user' || user.role === role) ? <Component /> : null;
+    // Render chỉ khi đủ điều kiện
+    if (!user || !user.userId) return null;
+    if (role && user.role !== role) return null;
+    return <Component />;
 }
 
 export default App;

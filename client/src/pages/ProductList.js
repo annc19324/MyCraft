@@ -78,6 +78,7 @@ function ProductList() {
                 <div className="container">
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
+                    <Link to="/orders">Đơn hàng</Link>
                     <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');

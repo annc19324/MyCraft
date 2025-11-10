@@ -183,17 +183,6 @@
     flex-wrap: wrap;
 }
 
-/* .product-actions-row .back-button {
-    background: #2196F3;
-    color: white;
-    padding: 0.75rem 1.25rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-} */
-
 .product-actions-row .back-button:hover {
     background: #1976D2;
 }
@@ -202,4 +191,9 @@
 .product-actions-row .buy-now-button .back-button {
     flex: 1;
     min-width: 140px;
+}
+
+.button-link {
+    width: 100%;
+    text-decoration: none;
 }

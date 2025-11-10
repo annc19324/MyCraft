@@ -1,11 +1,7 @@
+// server/models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    userId: {
-        type: String,
-        required: [true, 'userId là bắt buộc'],
-        unique: true,
-    },
     username: {
         type: String,
         required: [true, 'Tên đăng nhập là bắt buộc'],
@@ -19,12 +15,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Mật khẩu là bắt buộc'],
         minlength: [8, 'Mật khẩu phải có ít nhất 8 ký tự'],
-        // validate: {
-        //     validator: function (value) {
-        //         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/.test(value);
-        //     },
-        //     message: 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt',
-        // },
     },
     name: {
         type: String,
@@ -46,10 +36,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: {
-            values: ['user', 'admin'],
-            message: 'Vai trò phải là "user" hoặc "admin"',
-        },
+        enum: ['user', 'admin'],
         default: 'user',
     },
     createdAt: {

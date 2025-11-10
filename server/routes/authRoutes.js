@@ -1,3 +1,4 @@
+// server/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
@@ -7,7 +8,7 @@ router.post('/register', async (req, res) => {
     try {
         const { username, password, name, address, phone, role } = req.body;
 
-        // Validate dữ liệu đầu vào
+        // === VALIDATE ===
         if (!username || !password || !name) {
             return res.status(400).json({ message: 'Tên đăng nhập, mật khẩu và tên là bắt buộc' });
         }
@@ -24,14 +25,14 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ message: 'Vai trò phải là "user" hoặc "admin"' });
         }
 
-        const existingUser = await User.findOne({ username });
-        if (existingUser) {
+        // Kiểm tra trùng username
+        if (await User.findOne({ username })) {
             return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại' });
         }
 
+        // Tạo user – KHÔNG CẦN userId, Mongo tự tạo _id
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = new User({
-            userId: Date.now().toString(),
             username,
             password: hashedPassword,
             name,
@@ -41,14 +42,15 @@ router.post('/register', async (req, res) => {
         });
         await user.save();
 
-        const userData = {
-            userId: user.userId,
+        // Trả về _id (MongoDB ObjectId)
+        res.status(201).json({
+            _id: user._id,           // ← DÙNG _id
             username: user.username,
             role: user.role,
-        };
-        res.status(201).json(userData);
+        });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Lỗi đăng ký:', err);
+        res.status(500).json({ message: 'Lỗi server' });
     }
 });
 
@@ -56,29 +58,24 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Validate dữ liệu đầu vào
         if (!username || !password) {
             return res.status(400).json({ message: 'Tên đăng nhập và mật khẩu là bắt buộc' });
         }
 
         const user = await User.findOne({ username });
-        if (!user) {
+        if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(400).json({ message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
-        }
-
-        const userData = {
-            userId: user.userId,
+        // Trả về _id, không phải userId
+        res.json({
+            _id: user._id,           // ← DÙNG _id
             username: user.username,
-            role: user.role,
-        };
-        res.json(userData);
+            role: user.role || 'user',
+        });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Lỗi đăng nhập:', err);
+        res.status(500).json({ message: 'Lỗi server' });
     }
 });
 

@@ -43,15 +43,18 @@ function Cart() {
     }, [navigate, user?.userId]);
 
     const handleQuantityChange = async (productId, quantity) => {
-        if (quantity < 1) return;
+        const q = Math.max(1, parseInt(quantity) || 1);
         try {
             await axios.put(
                 'http://localhost:5000/api/cart',
-                { productId, quantity: parseInt(quantity) },
+                {
+                    productId: productId.toString(),
+                    quantity: q
+                },
                 { headers: { 'user-id': user.userId } }
             );
             setCartItems(prev => prev.map(item =>
-                item.productId === productId ? { ...item, quantity: parseInt(quantity) } : item
+                item.productId === productId ? { ...item, quantity: q } : item
             ));
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi cập nhật số lượng');
@@ -103,6 +106,7 @@ function Cart() {
                 <div className="container">
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
+                    <Link to="/orders">Đơn hàng</Link>
                     <button onClick={() => {
                         localStorage.removeItem('user');
                         navigate('/login');

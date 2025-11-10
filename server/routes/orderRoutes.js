@@ -57,4 +57,37 @@ router.post('/', async (req, res) => {
     }
 });
 
+// routes/orderRoutes.js
+router.put('/:orderId/cancel', async (req, res) => {
+    try {
+        const userId = req.headers['user-id'];
+        const { orderId } = req.params;
+        const order = await Order.findOne({ orderId, userId });
+        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn' });
+        if (order.status !== 'pending') return res.status(400).json({ message: 'Chỉ hủy được khi đang chờ' });
+
+        order.status = 'cancelled';
+        await order.save();
+        res.json(order);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.put('/:orderId/address', async (req, res) => {
+    try {
+        const userId = req.headers['user-id'];
+        const { orderId } = req.params;
+        const { name, phone, address } = req.body;
+        const order = await Order.findOne({ orderId, userId });
+        if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn' });
+        if (order.status !== 'pending') return res.status(400).json({ message: 'Không thể sửa khi đã xử lý' });
+
+        order.address = `${name} | ${phone} | ${address}`;
+        await order.save();
+        res.json(order);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 module.exports = router;

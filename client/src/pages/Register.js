@@ -1,3 +1,4 @@
+// src/pages/Register.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -25,12 +26,40 @@ function Register() {
         setLoading(true);
         setError(null);
 
+        // ==== CLIENT-SIDE VALIDATION (đồng bộ schema) ====
+        if (!/^[a-z0-9.]{3,50}$/.test(formData.username)) {
+            setError('Tên đăng nhập chỉ chứa a-z, 0-9, dấu chấm, 3-50 ký tự');
+            setLoading(false);
+            return;
+        }
+        if (formData.password.length < 8) {
+            setError('Mật khẩu phải ≥ 8 ký tự');
+            setLoading(false);
+            return;
+        }
+        if (!/^[a-zA-ZÀ-ỹ\s]{2,100}$/.test(formData.name)) {
+            setError('Tên chỉ chứa chữ cái và dấu cách, 2-100 ký tự');
+            setLoading(false);
+            return;
+        }
+        if (formData.phone && !/^(?:\+84|0)(?:3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(formData.phone)) {
+            setError('Số điện thoại Việt Nam không hợp lệ');
+            setLoading(false);
+            return;
+        }
+
         try {
             const response = await axios.post('http://localhost:5000/api/auth/register', {
                 ...formData,
-                role: 'user', // Mặc định là user, admin phải tạo thủ công
+                role: 'user',
             });
-            localStorage.setItem('user', JSON.stringify(response.data));
+
+            const userData = {
+                userId: response.data._id,      // <-- lưu đúng key
+                username: response.data.username,
+                role: response.data.role || 'user',
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
             navigate('/products');
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi đăng ký');

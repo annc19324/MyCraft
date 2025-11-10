@@ -42,7 +42,7 @@ function Home() {
         navigate('/checkout', {
             state: {
                 selectedItems: [{
-                    productId: productId.toString(), 
+                    productId: productId.toString(),
                     quantity: 1
                 }]
             }
@@ -70,6 +70,7 @@ function Home() {
                         <>
                             <Link to="/products">Sản phẩm</Link>
                             <Link to="/cart">Giỏ hàng</Link>
+                            <Link to="/orders">Đơn hàng</Link>
                             <button onClick={() => {
                                 localStorage.removeItem('user');
                                 navigate('/login');
