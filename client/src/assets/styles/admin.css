@@ -1,4 +1,11 @@
 /* src/assets/styles/admin.css */
+.page-wrapper-admin {
+    min-width: 1200px;
+    max-width: 1300px;
+    margin: 25px auto;
+    /* padding: 1.5rem; */
+}
+
 .admin-dashboard {
     display: flex;
     min-height: 100vh;
@@ -61,17 +68,46 @@
     margin-bottom: 1.5rem;
 }
 
+/* Form rộng hơn */
 .product-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    max-width: 600px;
-    margin-bottom: 2rem;
+    gap: 1.5rem;
+    max-width: 900px;
+    /* ← Tăng từ 600 → 800 */
+    margin-bottom: 2.5rem;
 }
 
 .form-buttons {
     grid-column: span 2;
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
     justify-content: flex-end;
+}
+
+/* Bảng rộng hơn */
+.product-table,
+.order-items-table {
+    font-size: 0.95rem;
+    min-width: 800px;
+}
+
+/* Responsive: Ẩn sidebar nếu màn hình < 1300px */
+@media (max-width: 1320px) {
+    .sidebar {
+        position: fixed;
+        left: -300px;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
 }

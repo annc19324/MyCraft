@@ -9,7 +9,7 @@ function AdminLayout() {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
     return (
-        <div className="page-wrapper">
+        <div className="page-wrapper page-wrapper-admin">
             <div className="admin-dashboard">
                 <div className="sidebar">
                     <h3>Admin</h3>
@@ -22,6 +22,16 @@ function AdminLayout() {
                         <Link to="/admin/products" className="button-link">
                             <button className={location.pathname.includes('/admin/products') ? 'active' : ''}>
                                 Quản lý sản phẩm
+                            </button>
+                        </Link>
+                        <Link to="/admin/orders" className="button-link">
+                            <button className={location.pathname.includes('/admin/orders') ? 'active' : ''}>
+                                Quản lý Đơn Hàng
+                            </button>
+                        </Link>
+                        <Link to="/admin/users" className="button-link">
+                            <button className={location.pathname.includes('/admin/users') ? 'active' : ''}>
+                                Quản lý người dùng
                             </button>
                         </Link>
                         <button onClick={() => {

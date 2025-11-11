@@ -33,7 +33,7 @@ function App() {
                     <Route index element={<AdminOverview />} />
                     <Route path="products" element={<AdminProducts />} />
                     <Route path="orders" element={<AdminOrders />} />
-                    <Route path="users" element={<div>Quản lý người dùng (sắp có)</div>} />
+                    <Route path="users" element={<AdminUsers />} />
                 </Route>
             </Routes>
         </Router>
