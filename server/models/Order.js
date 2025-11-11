@@ -89,6 +89,8 @@ const orderSchema = new mongoose.Schema({
         required: true
     },
 
+    paymentLinkId: { type: String },
+
     createdAt: {
         type: Date,
         default: Date.now,
