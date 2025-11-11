@@ -12,52 +12,76 @@ function AdminOrders() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
+    // Lấy thông tin user từ localStorage
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     const userId = user?.userId;
     const role = user?.role;
 
+    /* ==================================================================
+       [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG
+       ================================================================== */
     const fetchOrders = useCallback(async () => {
         if (!userId || role !== 'admin') return;
         setLoading(true);
+        setError(null);
         try {
             const res = await axios.get('http://localhost:5000/api/orders/all', {
-                headers: { 'user-id': userId, 'role': role },
+                headers: { 'user-id': userId },
             });
-            setOrders(res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+            const sortedOrders = (res.data || []).sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            setOrders(sortedOrders);
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi khi lấy đơn hàng');
+            const msg = err.response?.data?.message || 'Lỗi khi lấy đơn hàng';
+            setError(msg);
+            console.error('[ADMIN] Lỗi fetch orders:', err);
         } finally {
             setLoading(false);
         }
-    }, [userId, role]);
+    }, [userId]);
 
+    /* ==================================================================
+       [ADMIN] KIỂM TRA QUYỀN + GỌI API
+       ================================================================== */
     useEffect(() => {
         if (!userId || role !== 'admin') {
-            navigate('/login');
+            navigate('/login', { replace: true });
             return;
         }
         fetchOrders();
     }, [fetchOrders, navigate]);
 
+    /* ==================================================================
+       [ADMIN] CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
+       ================================================================== */
     const handleUpdateStatus = async (orderId, newStatus) => {
-        if (!window.confirm(`Cập nhật trạng thái thành "${newStatus}"?`)) return;
+        const statusText = newStatus === 'completed' ? 'Hoàn thành' : 'Đã hủy';
+        if (!window.confirm(`Cập nhật trạng thái thành "${statusText}"?`)) return;
+
         try {
             const res = await axios.put(
                 `http://localhost:5000/api/orders/${orderId}/status`,
                 { status: newStatus },
-                { headers: { 'user-id': userId, 'role': role } }
+                { headers: { 'user-id': userId } }
             );
             setOrders(prev => prev.map(o => o.orderId === orderId ? res.data : o));
             alert('Cập nhật thành công!');
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi khi cập nhật');
+            const msg = err.response?.data?.message || 'Lỗi khi cập nhật';
+            setError(msg);
+            console.error('[ADMIN] Lỗi update status:', err);
         }
     };
 
+    /* ==================================================================
+       [ADMIN] TÌM KIẾM + PHÂN TRANG
+       ================================================================== */
     const filteredOrders = orders.filter(o =>
-        o.orderId.includes(searchTerm) ||
+        o.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         o.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
     const indexOfLast = currentPage * ordersPerPage;
     const indexOfFirst = indexOfLast - ordersPerPage;
     const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
@@ -69,8 +93,12 @@ function AdminOrders() {
 
     const formatDate = (date) => new Date(date).toLocaleString('vi-VN');
 
+    // Bảo vệ quyền truy cập
     if (!userId || role !== 'admin') return null;
 
+    /* ==================================================================
+       [ADMIN] GIAO DIỆN HIỂN THỊ
+       ================================================================== */
     return (
         <div className="admin-section">
             <h2>Quản lý đơn hàng</h2>
@@ -81,20 +109,30 @@ function AdminOrders() {
                 <input
                     type="text"
                     value={searchTerm}
-                    onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                    onChange={e => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                    }}
                     placeholder="Mã đơn hoặc tên khách..."
                 />
             </div>
 
-            {loading ? <p>Đang tải...</p> : currentOrders.length === 0 ? <p>Không có đơn hàng nào</p> : (
+            {loading ? (
+                <p>Đang tải đơn hàng...</p>
+            ) : currentOrders.length === 0 ? (
+                <p>Không có đơn hàng nào</p>
+            ) : (
                 <>
                     {currentOrders.map(order => (
                         <div key={order.orderId} className="order-card" style={{ marginBottom: '1.5rem' }}>
                             <div className="order-header">
                                 <strong>Mã: {order.orderId}</strong>
+                                {/* // Trong phần hiển thị trạng thái */}
                                 <span className={`status ${order.status}`}>
                                     {order.status === 'pending' ? 'Chờ xử lý' :
-                                        order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy'}
+                                        order.status === 'processing' ? 'Đang chuẩn bị' :
+                                            order.status === 'shipping' ? 'Đang giao' :
+                                                order.status === 'completed' ? 'Hoàn thành' : 'Đã hủy'}
                                 </span>
                             </div>
                             <p><strong>Khách:</strong> {order.name} | {order.phone}</p>
@@ -104,7 +142,14 @@ function AdminOrders() {
                             <p><strong>Ngày đặt:</strong> {formatDate(order.createdAt)}</p>
 
                             <table className="order-items-table" style={{ margin: '1rem 0' }}>
-                                <thead><tr><th>Sản phẩm</th><th>SL</th><th>Giá</th><th>Tổng</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>SL</th>
+                                        <th>Giá</th>
+                                        <th>Tổng</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     {order.items.map(item => (
                                         <tr key={item.productId}>
@@ -117,10 +162,33 @@ function AdminOrders() {
                                 </tbody>
                             </table>
 
+                            {/* NÚT HÀNH ĐỘNG THEO TRẠNG THÁI */}
                             <div className="order-actions">
                                 {order.status === 'pending' && (
                                     <>
-                                        <button onClick={() => handleUpdateStatus(order.orderId, 'completed')} className="action-button edit">
+                                        <button onClick={() => handleUpdateStatus(order.orderId, 'processing')} className="action-button confirm">
+                                            Xác nhận
+                                        </button>
+                                        <button onClick={() => handleUpdateStatus(order.orderId, 'cancelled')} className="action-button delete">
+                                            Hủy đơn
+                                        </button>
+                                    </>
+                                )}
+
+                                {order.status === 'processing' && (
+                                    <>
+                                        <button onClick={() => handleUpdateStatus(order.orderId, 'shipping')} className="action-button ship">
+                                            Giao hàng
+                                        </button>
+                                        <button onClick={() => handleUpdateStatus(order.orderId, 'cancelled')} className="action-button delete">
+                                            Hủy đơn
+                                        </button>
+                                    </>
+                                )}
+
+                                {order.status === 'shipping' && (
+                                    <>
+                                        <button onClick={() => handleUpdateStatus(order.orderId, 'completed')} className="action-button complete">
                                             Hoàn thành
                                         </button>
                                         <button onClick={() => handleUpdateStatus(order.orderId, 'cancelled')} className="action-button delete">
@@ -133,13 +201,29 @@ function AdminOrders() {
                     ))}
 
                     <div className="pagination">
-                        <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="pagination-button">Trước</button>
+                        <button
+                            onClick={() => paginate(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="pagination-button"
+                        >
+                            Trước
+                        </button>
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <button key={page} onClick={() => paginate(page)} className={`pagination-button ${page === currentPage ? 'active' : ''}`}>
+                            <button
+                                key={page}
+                                onClick={() => paginate(page)}
+                                className={`pagination-button ${page === currentPage ? 'active' : ''}`}
+                            >
                                 {page}
                             </button>
                         ))}
-                        <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="pagination-button">Sau</button>
+                        <button
+                            onClick={() => paginate(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="pagination-button"
+                        >
+                            Sau
+                        </button>
                     </div>
                 </>
             )}

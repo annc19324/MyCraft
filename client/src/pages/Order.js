@@ -122,11 +122,17 @@ function Order() {
                                                 order.status === 'completed' ? 'Hoàn thành' :
                                                     order.status === 'cancelled' ? 'Đã hủy' : order.status}
                                         </span>
-                                        <span className={`status ${order.paymentStatus}`}>
-                                            {order.paymentStatus === 'unpaid' ? 'Chưa thanh toán' :
-                                                order.paymentStatus === 'paid' ? 'Đã thanh toán' :
-                                                    'Đã hoàn tiền'}
-                                        </span>
+                                        <p>
+                                            <strong>Thanh toán:</strong>{' '}
+                                            <span style={{
+                                                color: order.paymentStatus === 'paid' ? '#28a745' :
+                                                    order.paymentStatus === 'refunded' ? '#ffc107' : '#dc3545',
+                                                fontWeight: '600'
+                                            }}>
+                                                {order.paymentStatus === 'paid' ? 'Đã thanh toán' :
+                                                    order.paymentStatus === 'refunded' ? 'Đã hoàn tiền' : 'Chưa thanh toán'}
+                                            </span>
+                                        </p>
                                     </div>
                                     <p><strong>Phương thức:</strong>
                                         {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng' : 'Mã QR'}

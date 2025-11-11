@@ -40,7 +40,7 @@ const orderSchema = new mongoose.Schema({
     },
     items: [orderItemSchema],
 
-    // ===TÊN, SĐT, ĐỊA CHỈ ===
+    // === TÊN, SĐT, ĐỊA CHỈ ===
     name: {
         type: String,
         required: [true, 'Tên người nhận là bắt buộc'],
@@ -65,11 +65,12 @@ const orderSchema = new mongoose.Schema({
         min: [0, 'Tổng tiền không được âm'],
     },
 
+    // === CẬP NHẬT: 5 TRẠNG THÁI MỚI ===
     status: {
         type: String,
         enum: {
-            values: ['pending', 'completed', 'cancelled'],
-            message: 'Trạng thái phải là "pending", "completed", hoặc "cancelled"',
+            values: ['pending', 'processing', 'shipping', 'completed', 'cancelled'],
+            message: 'Trạng thái phải là một trong: pending, processing, shipping, completed, cancelled',
         },
         default: 'pending',
     },

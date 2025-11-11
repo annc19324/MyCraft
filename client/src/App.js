@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import AdminDashboard from './pages/AdminDashboard';
 import ProductList from './pages/ProductList';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -22,7 +21,6 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/admin" element={<ProtectedRoute component={AdminDashboard} role="admin" />} />
                 <Route path="/products" element={<ProtectedRoute component={ProductList} role="user" />} />
                 <Route path="/cart" element={<ProtectedRoute component={Cart} role="user" />} />
                 <Route path="/checkout" element={<ProtectedRoute component={Checkout} role="user" />} />
