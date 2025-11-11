@@ -144,7 +144,7 @@ function Checkout() {
                                 <textarea placeholder="Địa chỉ" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} rows="3" />
                                 <div className="form-actions">
                                     <button onClick={() => { setEditing(false); setForm(userInfo); }}>Hủy</button>
-                                    <button 
+                                    <button
                                         onClick={async () => {
                                             try {
                                                 await axios.put(
@@ -154,11 +154,11 @@ function Checkout() {
                                                 );
                                                 setUserInfo(form);
                                                 setEditing(false);
-                                                alert('Cập nhật thành công!');
+                                                // alert('Cập nhật thành công!');
                                             } catch (err) {
                                                 alert('Lỗi: ' + (err.response?.data?.message || 'Không thể lưu'));
                                             }
-                                        }} 
+                                        }}
                                         className="primary"
                                     >
                                         Lưu
