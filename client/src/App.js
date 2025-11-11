@@ -14,6 +14,9 @@ import AdminOrders from './pages/admin/AdminOrders'
 import AdminOverview from './pages/admin/AdminOverview'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminUsers from './pages/admin/AdminUsers'
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
+
 
 function App() {
     return (
@@ -33,6 +36,8 @@ function App() {
                     <Route path="orders" element={<AdminOrders />} />
                     <Route path="users" element={<AdminUsers />} />
                 </Route>
+                <Route path="/payment/success" element={<PaymentSuccess />} />
+                <Route path="/payment/cancel" element={<PaymentCancel />} />
             </Routes>
         </Router>
     );

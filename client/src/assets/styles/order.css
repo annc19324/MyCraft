@@ -215,3 +215,27 @@
 .payment-select option {
     padding: 0.5rem;
 }
+
+
+
+/* css order */
+.qr-actions {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.qr-button {
+    background: #25D366;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.qr-button:hover {
+    background: #128C7E;
+}

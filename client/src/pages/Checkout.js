@@ -85,33 +85,58 @@ function Checkout() {
             return;
         }
 
+        setLoading(true);
+        setError(null);
+
         try {
-            const orderData = {
-                items: orderItems,
-                name: form.name,
-                phone: form.phone,
-                address: form.address,
-                paymentMethod
-            };
+            // === COD: TẠO ĐƠN NGAY ===
+            if (paymentMethod === 'cod') {
+                const orderRes = await axios.post('http://localhost:5000/api/orders', {
+                    items: orderItems,
+                    name: form.name,
+                    phone: form.phone,
+                    address: form.address,
+                    paymentMethod: 'cod'
+                }, { headers: { 'user-id': user.userId } });
 
-            await axios.post(
-                'http://localhost:5000/api/orders',
-                orderData,
-                { headers: { 'user-id': user.userId } }
-            );
-
-            if (location.state?.fromCart) {
-                await axios.post(
-                    'http://localhost:5000/api/cart/remove-selected',
-                    { selectedItems: selectedItems.map(i => ({ productId: i.productId })) },
-                    { headers: { 'user-id': user.userId } }
-                );
+                alert('Đặt hàng thành công!');
+                navigate('/orders');
+                return;
             }
 
-            alert('Đặt hàng thành công!');
-            navigate('/orders');
+            // === QR: CHỈ TẠO LINK THANH TOÁN, CHƯA TẠO ĐƠN ===
+            if (paymentMethod === 'qr') {
+                const tempOrderId = `TEMP_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+                const qrRes = await axios.post('http://localhost:5000/api/payment/create-qr-temp', {
+                    tempOrderId,
+                    items: orderItems,
+                    name: form.name,
+                    phone: form.phone,
+                    address: form.address,
+                    total: totalPrice
+                }, { headers: { 'user-id': user.userId } });
+
+                if (qrRes.data.success) {
+                    // Lưu tạm vào localStorage để dùng sau khi thanh toán
+                    localStorage.setItem('pendingOrder', JSON.stringify({
+                        tempOrderId,
+                        items: orderItems,
+                        name: form.name,
+                        phone: form.phone,
+                        address: form.address,
+                        total: totalPrice
+                    }));
+                    window.location.href = qrRes.data.paymentUrl;
+                }
+                return;
+            }
+
         } catch (err) {
-            setError(err.response?.data?.message || 'Lỗi khi đặt hàng');
+            setError(err.response?.data?.message || 'Lỗi');
+            alert('Lỗi: ' + (err.response?.data?.message || 'Không thể xử lý'));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -154,7 +179,6 @@ function Checkout() {
                                                 );
                                                 setUserInfo(form);
                                                 setEditing(false);
-                                                // alert('Cập nhật thành công!');
                                             } catch (err) {
                                                 alert('Lỗi: ' + (err.response?.data?.message || 'Không thể lưu'));
                                             }
@@ -167,7 +191,7 @@ function Checkout() {
                             </div>
                         ) : (
                             <div className="user-info">
-                                <p><strong>Họ tên:</strong> {userInfo.name}</p>
+                                <p><strong>Họ tên:</strong> {userInfo.name || 'Chưa có'}</p>
                                 <p><strong>SĐT:</strong> {userInfo.phone || 'Chưa có'}</p>
                                 <p><strong>Địa chỉ:</strong> {userInfo.address || 'Chưa có'}</p>
                                 <button onClick={() => { setEditing(true); setForm(userInfo); }} className="edit-btn">Sửa</button>
@@ -189,7 +213,9 @@ function Checkout() {
                     {/* === SẢN PHẨM === */}
                     <div className="section">
                         <h3>Sản phẩm</h3>
-                        {loading ? <p>Đang tải...</p> : (
+                        {loading ? (
+                            <p>Đang tải...</p>
+                        ) : (
                             <table className="checkout-table">
                                 <thead>
                                     <tr>
@@ -199,7 +225,13 @@ function Checkout() {
                                 <tbody>
                                     {orderItems.map(item => (
                                         <tr key={item.productId}>
-                                            <td><img src={item.imageUrl || 'https://place.dog/100/100'} alt={item.name} className="checkout-image" /></td>
+                                            <td>
+                                                <img
+                                                    src={item.imageUrl || 'https://place.dog/100/100'}
+                                                    alt={item.name}
+                                                    className="checkout-image"
+                                                />
+                                            </td>
                                             <td>{item.name || 'Không rõ'}</td>
                                             <td>{item.quantity || 1}</td>
                                             <td>{(item.price || 0).toLocaleString()} VNĐ</td>
@@ -211,13 +243,27 @@ function Checkout() {
                         )}
                     </div>
 
+                    {/* === TỔNG TIỀN === */}
                     <div className="section total-section">
-                        <p className="total">Tổng tiền: <strong>{totalPrice.toLocaleString()} VNĐ</strong></p>
+                        <p className="total">
+                            Tổng tiền: <strong>{totalPrice.toLocaleString()} VNĐ</strong>
+                        </p>
                     </div>
 
+                    {/* === NÚT HÀNH ĐỘNG (CHỈ 1 LẦN) === */}
                     <div className="checkout-actions">
-                        <button onClick={handlePlaceOrder} disabled={loading} className="place-order-btn">
-                            {loading ? 'Đang xử lý...' : 'Đặt hàng'}
+                        <button
+                            onClick={handlePlaceOrder}
+                            disabled={loading}
+                            className="place-order-btn"
+                            style={{ opacity: loading ? 0.7 : 1 }}
+                        >
+                            {loading
+                                ? 'Đang xử lý...'
+                                : paymentMethod === 'qr'
+                                    ? 'Thanh toán bằng QR'
+                                    : 'Đặt hàng (COD)'
+                            }
                         </button>
                         <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
                     </div>

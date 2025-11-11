@@ -170,6 +170,37 @@ function Order() {
 
                                     <p className="total">Tổng tiền: {order.items.reduce((s, i) => s + i.price * i.quantity, 0).toLocaleString()} VNĐ</p>
 
+
+                                    {/* THÊM PHẦN KIỂM TRA QR */}
+                                    {order.paymentMethod === 'qr' && order.paymentStatus === 'unpaid' && (
+                                        <div className="qr-actions">
+                                            <button onClick={async () => {
+                                                try {
+                                                    const res = await axios.get(`http://localhost:5000/api/payment/${order.orderId}/status`, {
+                                                        headers: { 'user-id': user.userId }
+                                                    });
+                                                    if (res.data.paymentStatus === 'PAID') {
+                                                        alert('Đã thanh toán thành công!');
+                                                        fetchOrders();
+                                                    } else {
+                                                        // Tạo lại link QR
+                                                        const qrRes = await axios.post('http://localhost:5000/api/payment/create-qr', {
+                                                            orderId: order.orderId,
+                                                            amount: order.total,
+                                                            description: `Thanh toán đơn hàng ${order.orderId}`
+                                                        }, { headers: { 'user-id': user.userId } });
+                                                        window.open(qrRes.data.paymentUrl, '_blank');
+                                                    }
+                                                } catch (err) {
+                                                    alert('Lỗi kiểm tra thanh toán');
+                                                }
+                                            }} className="qr-button">
+                                                Thanh toán QR
+                                            </button>
+                                        </div>
+                                    )}
+
+
                                     <div className="order-actions">
                                         {order.status === 'pending' && (
                                             <>
