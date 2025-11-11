@@ -193,7 +193,7 @@ select:focus {
 }
 
 .pagination-button:disabled {
-    background: #f8fafc;
+    background: #0171e1;
     cursor: not-allowed;
     opacity: 0.6;
 }
