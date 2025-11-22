@@ -1,8 +1,8 @@
 // src/pages/Order.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import '../assets/styles/order.css'; // CSS mới
+import api from '../utils/api';
+import { useAuth } from '../hooks/useAuth';
 
 function Order() {
     const [orders, setOrders] = useState([]);
@@ -12,41 +12,37 @@ function Order() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, logout } = useAuth();
 
     useEffect(() => {
-        if (!user?.userId) {
+        if (token === null) return;
+        if (!token) {
             navigate('/login');
             return;
         }
         fetchOrders();
         fetchUserInfo();
-    }, [navigate, user?.userId]);
+    }, [navigate, token]);
 
     const fetchOrders = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/orders', {
-                headers: { 'user-id': user.userId },
-            });
-            // Sắp xếp: mới nhất trước
-            setOrders((res.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+            const res = await api.get('/orders');
+            const sorted = (res.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setOrders(sorted);
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi');
+            if (err.response?.status === 401) logout();
         } finally {
             setLoading(false);
         }
     };
 
-    // src/pages/Order.js
     const fetchUserInfo = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/users/profile', {
-                headers: { 'user-id': user.userId },
-            });
+            const res = await api.get('/profile');
             setUserInfo(res.data);
         } catch (err) {
-            console.error('Không lấy được thông tin người dùng');
             setUserInfo({ name: 'Chưa có', phone: '', address: '' });
         }
     };
@@ -54,9 +50,7 @@ function Order() {
     const handleCancel = async (orderId) => {
         if (!window.confirm('Hủy đơn hàng?')) return;
         try {
-            await axios.put(`http://localhost:5000/api/orders/${orderId}/cancel`, {}, {
-                headers: { 'user-id': user.userId },
-            });
+            await api.put(`/orders/${orderId}/cancel`, {});
             fetchOrders();
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi hủy');
@@ -64,7 +58,7 @@ function Order() {
     };
 
     const startEdit = (order) => {
-        if (order.status !== 'pending') return alert('Chỉ sửa được đơn chờ xử lý');
+        if (order.status !== 'pending') return alert('Chỉ sửa được đơn Chờ xử lý');
         setEditingOrderId(order.orderId);
         setEditForm({
             name: order.name || userInfo.name,
@@ -75,9 +69,7 @@ function Order() {
 
     const saveEdit = async () => {
         try {
-            await axios.put(`http://localhost:5000/api/orders/${editingOrderId}/address`, editForm, {
-                headers: { 'user-id': user.userId },
-            });
+            await api.put(`/orders/${editingOrderId}/address`, editForm);
             setEditingOrderId(null);
             fetchOrders();
             fetchUserInfo();
@@ -95,10 +87,10 @@ function Order() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
-                    <button onClick={() => {
-                        localStorage.removeItem('user');
-                        navigate('/login');
-                    }}>Đăng xuất</button>
+                    <Link to="/profile">Cá nhân</Link>
+                    <button onClick={() => { logout(); navigate('/login', { replace: true }); }}>
+                        Đăng xuất
+                    </button>
                 </div>
             </nav>
 
@@ -106,6 +98,7 @@ function Order() {
                 <div className="order-history-container">
                     <button onClick={() => navigate(-1)} className="back-button">Quay lại</button>
                     <h2>Đơn hàng của tôi</h2>
+
                     {error && <p className="error">{error}</p>}
                     {loading && <p>Đang tải...</p>}
 
@@ -119,8 +112,12 @@ function Order() {
                                         <strong>Mã đơn: {order.orderId}</strong>
                                         <span className={`status ${order.status}`}>
                                             {order.status === 'pending' ? 'Chờ xử lý' :
-                                                order.status === 'completed' ? 'Hoàn thành' :
-                                                    order.status === 'cancelled' ? 'Đã hủy' : order.status}
+                                            order.status === 'preparing' ? 'Đang chuẩn bị' :
+                                            order.status === 'processing' ? 'Đang xử lý' :
+                                            order.status === 'shipping' ? 'Đang giao' :
+                                            order.status === 'delivered' ? 'Đã giao' :
+                                            order.status === 'completed' ? 'Hoàn thành' :
+                                            order.status === 'cancelled' ? 'Đã hủy' : order.status}
                                         </span>
                                         <p>
                                             <strong>Thanh toán:</strong>{' '}
@@ -134,23 +131,22 @@ function Order() {
                                             </span>
                                         </p>
                                     </div>
-                                    <p><strong>Phương thức:</strong>
-                                        {order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng' : 'Mã QR'}
-                                    </p>
+
+                                    <p><strong>Phương thức:</strong> {order.paymentMethod === 'cod' ? 'COD' : 'QR'}</p>
                                     <p>Ngày đặt: {formatDate(order.createdAt)}</p>
 
-                                    {/* Thông tin giao hàng */}
                                     {editingOrderId === order.orderId ? (
                                         <div className="edit-address">
                                             <input placeholder="Họ tên" value={editForm.name} onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value }))} />
                                             <input placeholder="SĐT" value={editForm.phone} onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))} />
                                             <textarea placeholder="Địa chỉ" value={editForm.address} onChange={e => setEditForm(prev => ({ ...prev, address: e.target.value }))} />
-
-                                            <button style={{ marginTop: '10px' }} onClick={saveEdit}>Lưu</button>
-                                            <button style={{ marginLeft: '10px' }} onClick={() => setEditingOrderId(null)}>Hủy</button>
+                                            <div className="form-actions">
+                                                <button onClick={saveEdit} className="primary">Lưu</button>
+                                                <button onClick={() => setEditingOrderId(null)}>Hủy</button>
+                                            </div>
                                         </div>
                                     ) : (
-                                        <p><strong>Giao đến:</strong> {order.address || userInfo.address}</p>
+                                        <p><strong>Giao đến:</strong> {order.name} | {order.phone} | {order.address}</p>
                                     )}
 
                                     <table className="order-items-table">
@@ -161,52 +157,44 @@ function Order() {
                                                     <td><img src={item.imageUrl} alt={item.name} className="order-item-img" /></td>
                                                     <td>{item.name}</td>
                                                     <td>{item.quantity}</td>
-                                                    <td>{item.price.toLocaleString()} VNĐ</td>
-                                                    <td>{(item.price * item.quantity).toLocaleString()} VNĐ</td>
+                                                    <td>{item.price.toLocaleString()}đ</td>
+                                                    <td>{(item.price * item.quantity).toLocaleString()}đ</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
 
-                                    <p className="total">Tổng tiền: {order.items.reduce((s, i) => s + i.price * i.quantity, 0).toLocaleString()} VNĐ</p>
+                                    <p className="total">Tổng tiền: {order.total.toLocaleString()} VNĐ</p>
 
-
-                                    {/* THÊM PHẦN KIỂM TRA QR */}
-                                    {order.paymentMethod === 'qr' && order.paymentStatus === 'unpaid' && (
+                                    {order.paymentMethod === 'qr' && order.paymentStatus !== 'paid' && (
                                         <div className="qr-actions">
-                                            <button onClick={async () => {
-                                                try {
-                                                    const res = await axios.get(`http://localhost:5000/api/payment/${order.orderId}/status`, {
-                                                        headers: { 'user-id': user.userId }
-                                                    });
-                                                    if (res.data.paymentStatus === 'PAID') {
-                                                        alert('Đã thanh toán thành công!');
-                                                        fetchOrders();
-                                                    } else {
-                                                        // Tạo lại link QR
-                                                        const qrRes = await axios.post('http://localhost:5000/api/payment/create-qr', {
-                                                            orderId: order.orderId,
-                                                            amount: order.total,
-                                                            description: `Thanh toán đơn hàng ${order.orderId}`
-                                                        }, { headers: { 'user-id': user.userId } });
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        const qrRes = await api.post('/payment/create-qr', { orderId: order.orderId });
                                                         window.open(qrRes.data.paymentUrl, '_blank');
+                                                    } catch (err) {
+                                                        alert('Lỗi tạo QR');
                                                     }
-                                                } catch (err) {
-                                                    alert('Lỗi kiểm tra thanh toán');
-                                                }
-                                            }} className="qr-button">
-                                                Thanh toán QR
+                                                }}
+                                                className="qr-button"
+                                            >
+                                                Thanh toán QR ngay
                                             </button>
                                         </div>
                                     )}
 
-
                                     <div className="order-actions">
                                         {order.status === 'pending' && (
                                             <>
-                                                <button onClick={() => startEdit(order)} className="edit-btn">Sửa thông tin</button>
+                                                <button onClick={() => startEdit(order)} className="edit-btn">Sửa</button>
                                                 <button onClick={() => handleCancel(order.orderId)} className="cancel-btn">Hủy đơn</button>
                                             </>
+                                        )}
+                                        {order.status === 'shipping' && order.trackingNumber && (
+                                            <p style={{ margin: '8px 0', fontSize: '0.9rem' }}>
+                                                Mã vận đơn: <strong>{order.trackingNumber}</strong>
+                                            </p>
                                         )}
                                     </div>
                                 </div>

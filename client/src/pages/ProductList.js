@@ -1,17 +1,20 @@
-// src/pages/ProductList.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import api from '../utils/api';
+import { useAuth } from '../hooks/useAuth';
 
 function ProductList() {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    // const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, role, logout } = useAuth();
 
     useEffect(() => {
-        if (!user?.userId) {
+        // if (!user?.userId) {
+        if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để xem sản phẩm' } });
             return;
         }
@@ -21,8 +24,9 @@ function ProductList() {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('http://localhost:5000/api/products', {
-                    headers: { 'user-id': user.userId },
+                const response = await api.get('/products', {
+                    // headers: { 'user-id': user.userId },
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 if (isMounted) {
                     setProducts(response.data || []);
@@ -39,18 +43,20 @@ function ProductList() {
 
         fetchProducts();
         return () => { isMounted = false; };
-    }, [navigate, user?.userId]);
+    }, [navigate, token]);
 
     const handleAddToCart = async (productId) => {
-        if (!user?.userId) {
+        // if (!user?.userId) {
+        if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để thêm vào giỏ hàng' } });
             return;
         }
         try {
-            await axios.post(
-                'http://localhost:5000/api/cart',
+            await api.post(
+                '/cart',
                 { productId, quantity: 1 },
-                { headers: { 'user-id': user.userId } }
+                // { headers: { 'user-id': user.userId } }
+                { headers: { Authorization: `Bearer ${token}` } }
             );
             alert('Đã thêm vào giỏ hàng!');
         } catch (err) {
@@ -63,7 +69,8 @@ function ProductList() {
     // };
 
     const handleBuyNow = (product) => {
-        if (!user?.userId) {
+        // if (!user?.userId) {
+        if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
             return;
         }
@@ -83,10 +90,13 @@ function ProductList() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
+                    <Link to="/profile">Cá nhân</Link>
                     <button onClick={() => {
-                        localStorage.removeItem('user');
-                        navigate('/login');
-                    }}>Đăng xuất</button>
+                        logout();
+                        navigate('/login', { replace: true });
+                    }}>
+                        Đăng xuất
+                    </button>
                 </div>
             </nav>
 

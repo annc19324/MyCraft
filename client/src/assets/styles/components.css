@@ -44,6 +44,10 @@ button,
     display: inline-block;
 }
 
+.submit-button.submit-button-admin {
+    max-width: 150px;
+}
+
 button:hover,
 .navbar a:hover,
 .submit-button:hover,
@@ -174,16 +178,20 @@ select:focus {
 
 .pagination-button {
     padding: 0.6rem 0.9rem;
-    border: 1.5px solid #e2e8f0;
-    background: white;
+    border: 1.5px solid #2196F3;
+    background: #E3F2FD;
+    color: #1976D2;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 500;
     font-size: 0.9rem;
+    transition: all 0.2s ease;
 }
 
 .pagination-button:hover {
-    border-color: #2196F3;
+    background: #BBDEFB;
+    border-color: #1976D2;
+    color: #0d47a1;
 }
 
 .pagination-button.active {
@@ -193,7 +201,9 @@ select:focus {
 }
 
 .pagination-button:disabled {
-    background: #0171e1;
+    background: #BBDEFB;
+    color: #1976D2;
+    border-color: #2196F3;
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.7;
 }

@@ -1,3 +1,4 @@
+// server/routes/productRoutes.js
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
@@ -89,7 +90,8 @@ router.delete('/:id', checkAdmin, async (req, res) => {
         if (!product) {
             return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
         }
-        await product.remove();
+        // await product.remove();
+        await Product.findByIdAndDelete(req.params.id);
         res.json({ message: 'Xóa sản phẩm thành công' });
     } catch (err) {
         res.status(500).json({ message: err.message });

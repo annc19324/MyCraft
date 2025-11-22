@@ -1,14 +1,15 @@
-// src/pages/Home.js
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
+import { useAuth } from '../hooks/useAuth';
 
 function Home() {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const { token, logout } = useAuth();
 
     useEffect(() => {
         let isMounted = true;
@@ -16,7 +17,7 @@ function Home() {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('http://localhost:5000/api/products');
+                const response = await api.get('/products');
                 if (isMounted) {
                     setProducts(response.data || []);
                     setError(null);
@@ -35,7 +36,7 @@ function Home() {
     }, []);
 
     const handleBuyNow = (product) => {
-        if (!user?.userId) {
+        if (!token) {
             navigate('/login', { state: { message: 'Vui lòng đăng nhập để mua ngay' } });
             return;
         }
@@ -50,16 +51,12 @@ function Home() {
     };
 
     const handleAddToCart = async (productId) => {
-        if (!user?.userId) {
-            navigate('/login', { state: { message: 'Vui lòng đăng nhập để thêm vào giỏ hàng' } });
+        if (!token) {
+            navigate('/login', { state: { message: 'Vui lòng đăng nhập...' } });
             return;
         }
         try {
-            await axios.post(
-                'http://localhost:5000/api/cart',
-                { productId, quantity: 1 },
-                { headers: { 'user-id': user.userId } }
-            );
+            await api.post('/cart', { productId, quantity: 1 }); // ← DÙNG api
             alert('Đã thêm vào giỏ hàng!');
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi khi thêm vào giỏ hàng');
@@ -70,15 +67,13 @@ function Home() {
         <div className="page-wrapper">
             <nav className="navbar">
                 <div className="container">
-                    {user?.userId ? (
+                    {token ? (
                         <>
                             <Link to="/products">Sản phẩm</Link>
                             <Link to="/cart">Giỏ hàng</Link>
                             <Link to="/orders">Đơn hàng</Link>
-                            <button onClick={() => {
-                                localStorage.removeItem('user');
-                                navigate('/login');
-                            }}>Đăng xuất</button>
+                            <Link to="/profile">Cá nhân</Link>
+                            <button onClick={logout}>Đăng xuất</button>
                         </>
                     ) : (
                         <>
@@ -111,13 +106,9 @@ function Home() {
                                             {product.price.toLocaleString()} VNĐ
                                         </div>
                                         <div className="product-actions">
-                                            <Link
-                                                to={`/product/${product._id}`}
-                                                className="view-details-button"
-                                            >
+                                            <Link to={`/product/${product._id}`} className="view-details-button">
                                                 Xem
                                             </Link>
-
                                             <button
                                                 onClick={() => handleAddToCart(product._id)}
                                                 disabled={product.stock === 0}
@@ -125,7 +116,6 @@ function Home() {
                                             >
                                                 Thêm vào giỏ
                                             </button>
-
                                             <button
                                                 onClick={() => handleBuyNow(product)}
                                                 disabled={product.stock === 0}

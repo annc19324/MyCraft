@@ -1,7 +1,8 @@
 // src/pages/admin/AdminOrders.js
 import React, { useState, useEffect, useCallback } from 'react';
+import api from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 function AdminOrders() {
     const [orders, setOrders] = useState([]);
@@ -12,59 +13,88 @@ function AdminOrders() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Lấy thông tin user từ localStorage
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const userId = user?.userId;
-    const role = user?.role;
+    const { token, role, logout } = useAuth();
 
     /* ==================================================================
        [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG
        ================================================================== */
+    // const fetchOrders = useCallback(async () => {
+    //     if (!token || role !== 'admin') return;
+    //     setLoading(true);
+    //     setError(null);
+    //     try {
+    //         const res = await api.get('/orders/all');
+    //         const sortedOrders = (res.data || []).sort(
+    //             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    //         );
+    //         setOrders(sortedOrders);
+    //     } catch (err) {
+    //         const msg = err.response?.data?.message || 'Lỗi khi lấy đơn hàng';
+    //         setError(msg);
+    //         console.error('[ADMIN] Lỗi fetch orders:', err);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [token]);
+    // console.log('🔍 Imported api:', api);
     const fetchOrders = useCallback(async () => {
-        if (!userId || role !== 'admin') return;
+        if (!token || role !== 'admin') return;
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.get('http://localhost:5000/api/orders/all', {
-                headers: { 'user-id': userId },
-            });
+            console.log('🔄 [ADMIN] Đang gọi API:', `${api.defaults.baseURL}/orders/all`);
+
+            const res = await api.get('/orders/all');
+
+            console.log('✅ [ADMIN] API response:', res);
+
             const sortedOrders = (res.data || []).sort(
                 (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
             );
             setOrders(sortedOrders);
         } catch (err) {
+            console.error('❌ [ADMIN] Lỗi fetch orders:', err);
+            console.log('🔍 Chi tiết lỗi:', {
+                message: err.message,
+                code: err.code,
+                status: err.response?.status,
+                statusText: err.response?.statusText,
+                data: err.response?.data
+            });
+
             const msg = err.response?.data?.message || 'Lỗi khi lấy đơn hàng';
             setError(msg);
-            console.error('[ADMIN] Lỗi fetch orders:', err);
+
+            // Hiển thị thông báo cụ thể
+            if (err.code === 'ERR_NETWORK') {
+                setError('Không thể kết nối đến server. Backend có thể đang tắt.');
+            } else if (err.response?.status === 404) {
+                setError('Endpoint /orders/all không tồn tại trên backend.');
+            } else if (err.response?.status === 500) {
+                setError('Lỗi server backend.');
+            }
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, [token, role]);
 
-    /* ==================================================================
-       [ADMIN] KIỂM TRA QUYỀN + GỌI API
-       ================================================================== */
     useEffect(() => {
-        if (!userId || role !== 'admin') {
+        if (!token || role !== 'admin') {
             navigate('/login', { replace: true });
             return;
         }
         fetchOrders();
     }, [fetchOrders, navigate]);
 
-    /* ==================================================================
-       [ADMIN] CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
-       ================================================================== */
+    //    admin  CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
+
     const handleUpdateStatus = async (orderId, newStatus) => {
         const statusText = newStatus === 'completed' ? 'Hoàn thành' : 'Đã hủy';
         if (!window.confirm(`Cập nhật trạng thái thành "${statusText}"?`)) return;
 
         try {
-            const res = await axios.put(
-                `http://localhost:5000/api/orders/${orderId}/status`,
-                { status: newStatus },
-                { headers: { 'user-id': userId } }
-            );
+            const res = await api.put(`/orders/${orderId}/status`, { status: newStatus });
+
             setOrders(prev => prev.map(o => o.orderId === orderId ? res.data : o));
             alert('Cập nhật thành công!');
         } catch (err) {
@@ -94,7 +124,7 @@ function AdminOrders() {
     const formatDate = (date) => new Date(date).toLocaleString('vi-VN');
 
     // Bảo vệ quyền truy cập
-    if (!userId || role !== 'admin') return null;
+    if (!token || role !== 'admin') return null;
 
     /* ==================================================================
        [ADMIN] GIAO DIỆN HIỂN THỊ
@@ -141,6 +171,15 @@ function AdminOrders() {
                             <p><strong>Tổng:</strong> {order.total.toLocaleString()} VNĐ</p>
                             <p><strong>Ngày đặt:</strong> {formatDate(order.createdAt)}</p>
 
+                            <p>
+                                <strong>Thanh toán:</strong>{' '}
+                                <span style={{
+                                    color: order.paymentStatus === 'paid' ? '#28a745' : '#dc3545',
+                                    fontWeight: 'bold'
+                                }}>
+                                    {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                </span>
+                            </p>
                             <table className="order-items-table" style={{ margin: '1rem 0' }}>
                                 <thead>
                                     <tr>

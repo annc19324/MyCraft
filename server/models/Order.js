@@ -1,5 +1,6 @@
 // server/models/Order.js
 const mongoose = require('mongoose');
+const generateOrderId = require('../utils/generateOrderId');
 
 const orderItemSchema = new mongoose.Schema({
     productId: {
@@ -35,12 +36,11 @@ const orderSchema = new mongoose.Schema({
     },
     orderId: {
         type: String,
-        required: [true, 'orderId là bắt buộc'],
-        unique: true,
+        unique: true, // Sẽ tự động tạo nếu chưa có
     },
     items: [orderItemSchema],
 
-    // === TÊN, SĐT, ĐỊA CHỈ ===
+    // === THÔNG TIN GIAO HÀNG ===
     name: {
         type: String,
         required: [true, 'Tên người nhận là bắt buộc'],
@@ -57,7 +57,6 @@ const orderSchema = new mongoose.Schema({
         required: [true, 'Địa chỉ giao hàng là bắt buộc'],
         trim: true,
     },
-    // ===========================================
 
     total: {
         type: Number,
@@ -65,16 +64,17 @@ const orderSchema = new mongoose.Schema({
         min: [0, 'Tổng tiền không được âm'],
     },
 
-    // === CẬP NHẬT: 5 TRẠNG THÁI MỚI ===
+    // === TRẠNG THÁI ĐƠN HÀNG ===
     status: {
         type: String,
         enum: {
-            values: ['pending', 'processing', 'shipping', 'completed', 'cancelled'],
-            message: 'Trạng thái phải là một trong: pending, processing, shipping, completed, cancelled',
+            values: ['temp', 'pending', 'preparing', 'processing', 'shipping', 'delivered', 'completed', 'cancelled'],
+            message: 'Trạng thái không hợp lệ',
         },
         default: 'pending',
     },
 
+    // === THANH TOÁN ===
     paymentMethod: {
         type: String,
         enum: ['cod', 'qr'],
@@ -90,11 +90,34 @@ const orderSchema = new mongoose.Schema({
     },
 
     paymentLinkId: { type: String },
+    tempOrderId: { type: String }, // cho đơn tạm
 
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+    // === VẬN CHUYỂN ===
+    trackingNumber: String,
+    shippingPartner: String,
+
+    // === THỜI GIAN ===
+    createdAt: { type: Date, default: Date.now },
+    paidAt: Date,
+    preparedAt: Date,
+    shippedAt: Date,
+    deliveredAt: Date,
+    completedAt: Date
+});
+
+// TỰ ĐỘNG TẠO ORDERID + CẬP NHẬT TRẠNG THÁI
+orderSchema.pre('save', function(next) {
+    if (!this.orderId && this.status !== 'temp') {
+        this.orderId = generateOrderId();
+    }
+
+    // TỰ ĐỘNG: Đã thanh toán → Đang chuẩn bị
+    if (this.paymentStatus === 'paid' && !['temp', 'cancelled', 'completed'].includes(this.status)) {
+        this.status = 'preparing';
+        this.preparedAt = this.preparedAt || new Date();
+    }
+
+    next();
 });
 
 module.exports = mongoose.model('Order', orderSchema);

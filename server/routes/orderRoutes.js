@@ -5,12 +5,10 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const checkAdmin = require('../middleware/checkAdmin');
+const verifyToken = require('../middleware/verifyToken');
 
-/* ==================================================================
-   PHẦN ADMIN – CHỈ ADMIN MỚI ĐƯỢC DÙNG
-   ================================================================== */
+// admin
 
-// === [ADMIN] LẤY TẤT CẢ ĐƠN HÀNG ===
 router.get('/all', checkAdmin, async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 }).lean();
@@ -21,7 +19,6 @@ router.get('/all', checkAdmin, async (req, res) => {
     }
 });
 
-// === [ADMIN] CẬP NHẬT TRẠNG THÁI ===
 router.put('/:orderId/status', checkAdmin, async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -35,7 +32,7 @@ router.put('/:orderId/status', checkAdmin, async (req, res) => {
         const order = await Order.findOne({ orderId });
         if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
 
-        // === HOÀN TỒN KHO KHI HỦY (chỉ khi đang pending/processing/shipping) ===
+        // hoan sluong khi huy (chỉ khi đang pending/processing/shipping)
         if (status === 'cancelled' && ['pending', 'processing', 'shipping'].includes(order.status)) {
             for (const item of order.items) {
                 const product = await Product.findById(item.productId);
@@ -46,14 +43,13 @@ router.put('/:orderId/status', checkAdmin, async (req, res) => {
             }
         }
 
-        // === CẬP NHẬT TRẠNG THÁI ===
+        //cap nhat trang thai
         order.status = status;
 
-        // === KHI HOÀN THÀNH → ĐÁNH DẤU ĐÃ THANH TOÁN (CẢ COD & QR) ===
+        // khi hoan thanh, danh dau da thanh toan
         if (status === 'completed') {
             order.paymentStatus = 'paid';
         }
-
         await order.save();
         res.json(order);
     } catch (err) {
@@ -62,14 +58,13 @@ router.put('/:orderId/status', checkAdmin, async (req, res) => {
     }
 });
 
-/* ==================================================================
-   PHẦN USER – NGƯỜI DÙNG BÌNH THƯỜNG
-   ================================================================== */
+// user 
 
-// === [USER] TẠO ĐƠN HÀNG ===
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     const { items, name, phone, address, paymentMethod = 'cod' } = req.body;
-    const userId = req.headers['user-id'];
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId;
+
 
     if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });
     if (!items || items.length === 0) return res.status(400).json({ message: 'Giỏ hàng trống' });
@@ -113,9 +108,11 @@ router.post('/', async (req, res) => {
     }
 });
 
-// === [USER] LẤY ĐƠN HÀNG CỦA CHÍNH MÌNH ===
-router.get('/', async (req, res) => {
-    const userId = req.headers['user-id'];
+// === user lấy đơn hàng của mình
+router.get('/', verifyToken, async (req, res) => {
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId;
+
     if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' });
 
     try {
@@ -128,10 +125,12 @@ router.get('/', async (req, res) => {
 });
 
 // === [USER] CẬP NHẬT ĐỊA CHỈ GIAO HÀNG ===
-router.put('/:id/address', async (req, res) => {
+router.put('/:id/address', verifyToken, async (req, res) => {
     const { id } = req.params;  // id = orderId
     const { name, phone, address } = req.body;
-    const userId = req.headers['user-id'];
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId;
+
 
     try {
         const order = await Order.findOne({ orderId: id });
@@ -152,9 +151,11 @@ router.put('/:id/address', async (req, res) => {
 });
 
 // === [USER] HỦY ĐƠN HÀNG ===
-router.put('/:id/cancel', async (req, res) => {
+router.put('/:id/cancel', verifyToken, async (req, res) => {
     const { id } = req.params;  // id = orderId
-    const userId = req.headers['user-id'];
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId;
+
 
     try {
         const order = await Order.findOne({ orderId: id });

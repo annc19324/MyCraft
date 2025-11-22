@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const verifyToken = require('../middleware/verifyToken');
 
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
     try {
-        const userId = req.headers['user-id'];
+        // const userId = req.headers['user-id'];
+        const userId = req.user.userId;
         if (!userId) {
             return res.status(401).json({ message: 'Thiếu user-id trong header' });
         }
@@ -20,9 +22,10 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/selected', async (req, res) => {
+router.post('/selected', verifyToken, async (req, res) => {
     try {
-        const userId = req.headers['user-id'];
+        // const userId = req.headers['user-id'];
+        const userId = req.user.userId;
         const { selectedItems } = req.body;
         if (!userId) {
             return res.status(401).json({ message: 'Thiếu user-id trong header' });
@@ -41,9 +44,11 @@ router.post('/selected', async (req, res) => {
     }
 });
 
-router.post('/remove-selected', async (req, res) => {
+router.post('/remove-selected', verifyToken, async (req, res) => {
     try {
-        const userId = req.headers['user-id'];
+        // const userId = req.headers['user-id'];
+        const userId = req.user.userId;
+
         const { selectedItems } = req.body;
         if (!userId) {
             return res.status(401).json({ message: 'Thiếu user-id trong header' });
@@ -63,15 +68,18 @@ router.post('/remove-selected', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     const { productId, quantity } = req.body;
-    const userId = req.headers['user-id'];
+    // const userId = req.headers['user-id'];
+    const userId = req.user.userId;
+
 
     if (!userId) return res.status(401).json({ message: 'Chưa đăng nhập' }); // BẮT BUỘC
     if (!productId || !quantity) return res.status(400).json({ message: 'Thiếu thông tin' });
 
     try {
-        const userId = req.headers['user-id'];
+        // const userId = req.headers['user-id'];
+        const userId = req.user.userId
         const { productId, quantity } = req.body;
         if (!userId) {
             return res.status(401).json({ message: 'Thiếu user-id trong header' });
@@ -112,9 +120,11 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.delete('/:productId', async (req, res) => {
+router.delete('/:productId', verifyToken, async (req, res) => {
     try {
-        const userId = req.headers['user-id'];
+        // const userId = req.headers['user-id'];
+        const userId = req.user.userId;
+
         const { productId } = req.params;
         if (!userId) return res.status(401).json({ message: 'Thiếu user-id' });
         if (!productId) return res.status(400).json({ message: 'productId là bắt buộc' });
@@ -132,9 +142,11 @@ router.delete('/:productId', async (req, res) => {
 });
 
 
-router.put('/', async (req, res) => {
+router.put('/', verifyToken, async (req, res) => {
     try {
-        const userId = req.headers['user-id'];
+        // const userId = req.headers['user-id'];
+        const userId = req.user.userId;
+
         const { productId, quantity } = req.body;
         if (!userId) {
             return res.status(401).json({ message: 'Thiếu user-id trong header' });
