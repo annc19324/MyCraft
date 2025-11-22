@@ -10,7 +10,25 @@ export function useAuth() {
     const [role, setRole] = useState(userData?.role || null);
     const [userId, setUserId] = useState(userData?.userId || null);
 
-    // Chỉ lắng nghe thay đổi localStorage (nếu cần)
+    // Hàm login mới: Lưu vào localStorage VÀ cập nhật state
+    const login = ({ token, role, userId }) => {
+        const userData = { token, role, userId };
+        localStorage.setItem('user', JSON.stringify(userData));
+        setToken(token);
+        setRole(role);
+        setUserId(userId);
+        console.log('useAuth: State đã được cập nhật bằng hàm login()');
+    };
+
+    const logout = () => {
+        localStorage.removeItem('user');
+        setToken(null);
+        setRole(null);
+        setUserId(null);
+    };
+
+    // Chỉ lắng nghe thay đổi localStorage (cho đồng bộ giữa các tab)
+    // Tôi giữ lại phần này, nhưng vấn đề chính được giải quyết bằng hàm `login`
     useEffect(() => {
         const handleStorageChange = () => {
             const newData = localStorage.getItem('user');
@@ -24,12 +42,5 @@ export function useAuth() {
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
-    const logout = () => {
-        localStorage.removeItem('user');
-        setToken(null);
-        setRole(null);
-        setUserId(null);
-    };
-
-    return { token, role, userId, logout };
+    return { token, role, userId, login, logout }; // Trả về hàm login
 }

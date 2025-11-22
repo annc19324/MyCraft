@@ -12,23 +12,27 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { token, role } = useAuth();
+    // Lấy hàm login ra để sử dụng
+    const { token, role, login } = useAuth();
 
     useEffect(() => {
         if (searchParams.get('verified') === 'true') {
             setError(null);
             const timer = setTimeout(() => {
+                // Có thể thêm logic xóa message sau 3s nếu muốn
             }, 3000);
             return () => clearTimeout(timer);
         }
     }, [searchParams]);
 
+    // CHUYỂN HƯỚNG BẰNG useEffect: Sẽ chạy sau khi login() cập nhật state.
+    // Đã bỏ navigate khỏi dependency array vì nó không thay đổi.
     useEffect(() => {
         if (token) {
             console.log('Đã đăng nhập → Chuyển hướng:', role === 'admin' ? '/admin' : '/');
             navigate(role === 'admin' ? '/admin' : '/', { replace: true });
         }
-    }, [token, role, navigate]);
+    }, [token, role, navigate]); // Giữ navigate ở đây để thỏa mãn ESLint/React-router v6
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -47,27 +51,22 @@ function Login() {
 
             console.log('Response từ server:', response.data);
 
-            const { token, role } = response.data;
+            const { token: newToken, role: newRole, userId: newUserId } = response.data;
 
-            if (!token || !role) {
+            if (!newToken || !newRole) {
                 throw new Error('Server không trả về token hoặc role');
             }
 
-            // Lưu token + role
-            const userData = { token, role };
-            localStorage.setItem('user', JSON.stringify(userData));
-            console.log('ĐÃ LƯU USER VÀO localStorage:', userData);
-
-            navigate(role === 'admin' ? '/admin' : '/', { replace: true });
+            // GỌI HÀM LOGIN ĐỂ CẬP NHẬT STATE VÀ localStorage
+            // Điều này sẽ kích hoạt useEffect ở trên để thực hiện navigate
+            login({ token: newToken, role: newRole, userId: newUserId });
+            console.log('ĐÃ GỌI login() → Đợi useEffect chuyển hướng.');
 
         } catch (err) {
             console.error('LỖI ĐĂNG NHẬP:', err);
-            // const message = err.response?.data?.message || err.message || 'Lỗi không xác định';
-            // setError(message);
             const res = err.response?.data;
 
             if (res?.needsVerification) {
-                // CHỈ HIỆN THÔNG BÁO – KHÔNG CÓ NÚT
                 setError(
                     <div style={{ color: '#d97706', textAlign: 'center', margin: '1rem 0' }}>
                         <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
