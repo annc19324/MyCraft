@@ -127,6 +127,7 @@ function Profile() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
+                    <Link to="/messages">Chat</Link>
                     <Link to="/profile">Cá nhân</Link>
                     <button onClick={() => { logout(); navigate('/login', { replace: true }); }}>
                         Đăng xuất

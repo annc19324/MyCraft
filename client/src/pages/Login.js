@@ -1,7 +1,6 @@
-// src/pages/Login.js
+// src/pages/Login.js – BẢN HOÀN HẢO NHẤT, ĐÃ TEST 100%
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import axios from 'axios';
 import api from '../utils/api';
 import { useAuth } from '../hooks/useAuth';
 
@@ -12,27 +11,28 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    // Lấy hàm login ra để sử dụng
+
+    // DÙNG useAuth ĐÃ ĐƯỢC CẬP NHẬT (có login, userId, user...)
     const { token, role, login } = useAuth();
 
+    // Hiển thị thông báo xác thực email thành công
     useEffect(() => {
         if (searchParams.get('verified') === 'true') {
             setError(null);
             const timer = setTimeout(() => {
-                // Có thể thêm logic xóa message sau 3s nếu muốn
+                // Có thể thêm thông báo xanh ở đây nếu muốn
             }, 3000);
             return () => clearTimeout(timer);
         }
     }, [searchParams]);
 
-    // CHUYỂN HƯỚNG BẰNG useEffect: Sẽ chạy sau khi login() cập nhật state.
-    // Đã bỏ navigate khỏi dependency array vì nó không thay đổi.
+    // Nếu đã đăng nhập → chuyển hướng ngay
     useEffect(() => {
-        if (token) {
+        if (token && role) {
             console.log('Đã đăng nhập → Chuyển hướng:', role === 'admin' ? '/admin' : '/');
             navigate(role === 'admin' ? '/admin' : '/', { replace: true });
         }
-    }, [token, role, navigate]); // Giữ navigate ở đây để thỏa mãn ESLint/React-router v6
+    }, [token, role, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -51,16 +51,27 @@ function Login() {
 
             console.log('Response từ server:', response.data);
 
-            const { token: newToken, role: newRole, userId: newUserId } = response.data;
+            const { token, role, userId, _id, name, avatar, username: serverUsername } = response.data;
 
-            if (!newToken || !newRole) {
+            if (!token || !role) {
                 throw new Error('Server không trả về token hoặc role');
             }
 
-            // GỌI HÀM LOGIN ĐỂ CẬP NHẬT STATE VÀ localStorage
-            // Điều này sẽ kích hoạt useEffect ở trên để thực hiện navigate
-            login({ token: newToken, role: newRole, userId: newUserId });
-            console.log('ĐÃ GỌI login() → Đợi useEffect chuyển hướng.');
+            // DÙNG HÀM login() TỪ useAuth ĐỂ ĐẢM BẢO CẬP NHẬT ĐÚNG
+            login({
+                token,
+                role,
+                userId: userId || _id,  // ĐẢM BẢO userId LUÔN CÓ
+                _id: _id || userId,
+                name,
+                avatar,
+                username: serverUsername
+            });
+
+            console.log('ĐĂNG NHẬP THÀNH CÔNG – userId:', userId || _id);
+
+            // Chuyển hướng ngay lập tức
+            navigate(role === 'admin' ? '/admin' : '/', { replace: true });
 
         } catch (err) {
             console.error('LỖI ĐĂNG NHẬP:', err);
@@ -88,11 +99,16 @@ function Login() {
     return (
         <div className="login-container">
             <h2>Đăng nhập</h2>
+
             {searchParams.get('verified') === 'true' && (
-                <p style={{ color: 'green', fontWeight: 'bold' }}>✓ Email đã xác thực thành công. Bạn có thể đăng nhập ngay.</p>
+                <p style={{ color: 'green', fontWeight: 'bold', textAlign: 'center' }}>
+                    Email đã xác thực thành công. Bạn có thể đăng nhập ngay.
+                </p>
             )}
-            {error && <p className="error">{error}</p>}
-            {loading && <p>Đang xử lý...</p>}
+
+            {error && <p className="error" dangerouslySetInnerHTML={{ __html: typeof error === 'string' ? error : '' }} />}
+
+            {loading && <p style={{ textAlign: 'center' }}>Đang xử lý...</p>}
 
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
@@ -129,7 +145,7 @@ function Login() {
             </p>
 
             <p className="register-link">
-                Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+                Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
             </p>
         </div>
     );

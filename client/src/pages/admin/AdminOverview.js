@@ -71,14 +71,38 @@ function AdminOverview() {
             {error && <p className="error">{error}</p>}
             {loading ? <p>Đang tải dữ liệu...</p> : (
                 <div className="overview-grid">
-                    <div className="stat-card"><div className="stat-icon purple">People</div><div className="stat-value">{stats.totalUsers}</div><div className="stat-label">Tổng người dùng</div></div>
-                    <div className="stat-card"><div className="stat-icon teal">Checkmark</div><div className="stat-value">{stats.activeUsers}</div><div className="stat-label">Người dùng đã mua</div></div>
-                    <div className="stat-card"><div className="stat-icon blue">Box</div><div className="stat-value">{stats.totalProducts}</div><div className="stat-label">Tổng sản phẩm</div></div>
-                    <div className="stat-card"><div className="stat-icon green">Shopping Cart</div><div className="stat-value">{stats.totalOrders}</div><div className="stat-label">Tổng đơn hàng</div></div>
-                    <div className="stat-card"><div className="stat-icon orange">Clock</div><div className="stat-value">{stats.pendingOrders}</div><div className="stat-label">Đơn chờ xử lý</div></div>
-                    <div className="stat-card"><div className="stat-icon purple">Money</div><div className="stat-value">{stats.todayRevenue.toLocaleString()} VNĐ</div><div className="stat-label">Doanh thu hôm nay</div></div>
-                    <div className="stat-card large"><div className="stat-icon gold">Trophy</div><div className="stat-value">{stats.totalRevenue.toLocaleString()} VNĐ</div><div className="stat-label">Tổng doanh thu</div></div>
-                    <div className="stat-card"><div className="stat-icon red">Alert</div><div className="stat-value">{stats.lowStockProducts}</div><div className="stat-label">Sản phẩm sắp hết</div></div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.totalUsers}</div>
+                        <div className="stat-label">Tổng người dùng</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.activeUsers}</div>
+                        <div className="stat-label">Người dùng đã mua</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.totalProducts}</div>
+                        <div className="stat-label">Tổng sản phẩm</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.totalOrders}</div>
+                        <div className="stat-label">Tổng đơn hàng</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.pendingOrders}</div>
+                        <div className="stat-label">Đơn chờ xử lý</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.todayRevenue.toLocaleString()} ₫</div>
+                        <div className="stat-label">Doanh thu hôm nay</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.totalRevenue.toLocaleString()} ₫</div>
+                        <div className="stat-label">Tổng doanh thu</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{stats.lowStockProducts}</div>
+                        <div className="stat-label">Sản phẩm sắp hết</div>
+                    </div>
                 </div>
             )}
         </div>

@@ -119,7 +119,7 @@ function AdminUsers() {
                         <input type="text" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} required /></div>
                     <div className="form-group">
                         <label>Email:</label>
-                            <input type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} required /></div>
+                        <input type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} required /></div>
                     <div className="form-group">
                         <label>Mật khẩu:</label>
                         <input type="password" value={formData.password}

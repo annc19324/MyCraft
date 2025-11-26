@@ -86,6 +86,8 @@ function ProductDetail() {
                         <>
                             <Link to="/products">Sản phẩm</Link>
                             <Link to="/cart">Giỏ hàng</Link>
+                            <Link to="/messages">Chat</Link>
+
                             <Link to="/profile">Cá nhân</Link>
                             <button onClick={() => {
                                 logout();

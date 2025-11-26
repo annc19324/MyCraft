@@ -1,46 +1,71 @@
-// hooks/useAuth.js
+// client/src/hooks/useAuth.js
+// Bản hoàn hảo – giữ nguyên phong cách của bạn, đã fix userId = null
 import { useState, useEffect } from 'react';
 
 export function useAuth() {
-    // ĐỌC NGAY LẬP TỨC → KHÔNG DÙNG useEffect
-    const stored = localStorage.getItem('user');
-    const userData = stored ? JSON.parse(stored) : null;
-
-    const [token, setToken] = useState(userData?.token || null);
-    const [role, setRole] = useState(userData?.role || null);
-    const [userId, setUserId] = useState(userData?.userId || null);
-
-    // Hàm login mới: Lưu vào localStorage VÀ cập nhật state
-    const login = ({ token, role, userId }) => {
-        const userData = { token, role, userId };
-        localStorage.setItem('user', JSON.stringify(userData));
-        setToken(token);
-        setRole(role);
-        setUserId(userId);
-        console.log('useAuth: State đã được cập nhật bằng hàm login()');
+    // Hàm helper để đọc localStorage an toàn
+    const getStoredUser = () => {
+        try {
+            const stored = localStorage.getItem('user');
+            return stored ? JSON.parse(stored) : null;
+        } catch (err) {
+            console.error('Lỗi parse user từ localStorage:', err);
+            localStorage.removeItem('user');
+            return null;
+        }
     };
 
-    const logout = () => {
-        localStorage.removeItem('user');
-        setToken(null);
-        setRole(null);
-        setUserId(null);
-    };
+    const storedUser = getStoredUser();
 
-    // Chỉ lắng nghe thay đổi localStorage (cho đồng bộ giữa các tab)
-    // Tôi giữ lại phần này, nhưng vấn đề chính được giải quyết bằng hàm `login`
+    const [token, setToken] = useState(storedUser?.token || null);
+    const [role, setRole] = useState(storedUser?.role || null);
+    const [userId, setUserId] = useState(storedUser?.userId || storedUser?._id || null);
+    const [user, setUser] = useState(storedUser); // để Messages.js lấy tên
+
+    // Cập nhật khi localStorage thay đổi (đăng nhập, đăng xuất, tab khác…)
     useEffect(() => {
         const handleStorageChange = () => {
-            const newData = localStorage.getItem('user');
-            const parsed = newData ? JSON.parse(newData) : null;
-            setToken(parsed?.token || null);
-            setRole(parsed?.role || null);
-            setUserId(parsed?.userId || null);
+            const newUser = getStoredUser();
+            setUser(newUser);
+            setToken(newUser?.token || null);
+            setRole(newUser?.role || null);
+            setUserId(newUser?.userId || newUser?._id || null);
+            console.log('useAuth cập nhật → userId:', newUser?.userId || newUser?._id);
         };
 
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
-    return { token, role, userId, login, logout }; // Trả về hàm login
+    const logout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        setToken(null);
+        setRole(null);
+        setUserId(null);
+        console.log('Đã đăng xuất');
+    };
+
+    // Hàm login để dùng trong Login.js (bạn chỉ cần gọi 1 dòng)
+    const login = (data) => {
+        const normalized = {
+            ...data,
+            userId: data.userId || data._id // đảm bảo luôn có userId
+        };
+        localStorage.setItem('user', JSON.stringify(normalized));
+        setUser(normalized);
+        setToken(normalized.token);
+        setRole(normalized.role);
+        setUserId(normalized.userId);
+        console.log('useAuth login → userId:', normalized.userId);
+    };
+
+    return {
+        user,      // để Messages.js lấy tên, avatar…
+        userId,    // BÂY GIỜ LUÔN CÓ!
+        token,
+        role,
+        login,     // dùng trong Login.js
+        logout
+    };
 }

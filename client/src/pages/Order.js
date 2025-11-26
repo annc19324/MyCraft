@@ -87,6 +87,7 @@ function Order() {
                     <Link to="/products">Sản phẩm</Link>
                     <Link to="/cart">Giỏ hàng</Link>
                     <Link to="/orders">Đơn hàng</Link>
+                    <Link to="/messages">Chat</Link>
                     <Link to="/profile">Cá nhân</Link>
                     <button onClick={() => { logout(); navigate('/login', { replace: true }); }}>
                         Đăng xuất
@@ -112,12 +113,12 @@ function Order() {
                                         <strong>Mã đơn: {order.orderId}</strong>
                                         <span className={`status ${order.status}`}>
                                             {order.status === 'pending' ? 'Chờ xử lý' :
-                                            order.status === 'preparing' ? 'Đang chuẩn bị' :
-                                            order.status === 'processing' ? 'Đang xử lý' :
-                                            order.status === 'shipping' ? 'Đang giao' :
-                                            order.status === 'delivered' ? 'Đã giao' :
-                                            order.status === 'completed' ? 'Hoàn thành' :
-                                            order.status === 'cancelled' ? 'Đã hủy' : order.status}
+                                                order.status === 'preparing' ? 'Đang chuẩn bị' :
+                                                    order.status === 'processing' ? 'Đang xử lý' :
+                                                        order.status === 'shipping' ? 'Đang giao' :
+                                                            order.status === 'delivered' ? 'Đã giao' :
+                                                                order.status === 'completed' ? 'Hoàn thành' :
+                                                                    order.status === 'cancelled' ? 'Đã hủy' : order.status}
                                         </span>
                                         <p>
                                             <strong>Thanh toán:</strong>{' '}

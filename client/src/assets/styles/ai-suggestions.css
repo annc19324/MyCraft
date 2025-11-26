@@ -1,0 +1,129 @@
+/* client/src/assets/styles/ai-suggestions.css */
+
+.ai-suggestions {
+    background: white;
+    border: 2px solid #e0e7ff;
+    border-radius: 18px;
+    margin: 0 2rem 1.2rem;
+    padding: 1.2rem;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+    max-width: 90%;
+    align-self: center;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.ai-title {
+    font-weight: 700;
+    color: #6366f1;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed #c7d2fe;
+}
+
+.ai-title svg {
+    color: #8b5cf6;
+    animation: pulse 2s infinite;
+}
+
+.ai-suggestion-item {
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.98rem;
+    line-height: 1.5;
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-suggestion-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 14px;
+}
+
+.ai-suggestion-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+    border-color: #6366f1;
+}
+
+.ai-suggestion-item:hover::before {
+    opacity: 0.1;
+}
+
+.ai-suggestion-item:active {
+    transform: translateY(-1px);
+}
+
+/* Nút AI */
+.ai-button {
+    padding: 18px 28px;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+    border: none;
+    border-radius: 32px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.4s ease;
+    white-space: nowrap;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.ai-button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(139, 92, 246, 0.5);
+}
+
+.ai-button:active {
+    transform: translateY(-1px);
+}
+
+.ai-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

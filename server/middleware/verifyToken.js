@@ -17,6 +17,7 @@ module.exports = (req, res, next) => {
         const decoded = jwt.verify(token, JWT_SECRET);
         // decoded = { userId: "...", role: "user", iat: ..., exp: ... }
         req.user = {
+            _id: decoded.userId,
             userId: decoded.userId,
             role: decoded.role
         };

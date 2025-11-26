@@ -23,7 +23,8 @@ function AdminLayout() {
                     <div className="sidebar-buttons">
                         <Link to="/admin"><button className={location.pathname === '/admin' ? 'active' : ''}>Tổng quan</button></Link>
                         <Link to="/admin/products"><button className={location.pathname.includes('/admin/products') ? 'active' : ''}>Quản lý sản phẩm</button></Link>
-                        <Link to="/admin/orders"><button className={location.pathname.includes('/admin/orders') ? 'active' : ''}>Quản lý Đơn Hàng</button></Link>
+                        <Link to="/admin/orders"><button className={location.pathname.includes('/admin/orders') ? 'active' : ''}>Quản lý đơn hàng</button></Link>
+                        <Link to="/admin/messages"><button className={location.pathname.includes('/admin/messages') ? 'active' : ''}>Chat</button></Link>
                         <Link to="/admin/users"><button className={location.pathname.includes('/admin/users') ? 'active' : ''}>Quản lý người dùng</button></Link>
                         <button onClick={() => {
                             logout();
