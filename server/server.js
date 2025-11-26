@@ -24,7 +24,7 @@ const io = new Server(server, {
 // Cấu hình CORS cho Express (giữ nguyên như bạn đã làm)
 app.use(cors({
     origin: [
-        'https://shop-my-craft.vercel.app',
+        'https://my-craft.vercel.app',
         'http://localhost:3000',
         'http://localhost:3001'
     ],
@@ -32,6 +32,8 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// app.use(cors());
 
 app.use(express.json({ limit: '10mb' }));
 
